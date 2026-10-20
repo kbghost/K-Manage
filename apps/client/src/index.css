@@ -1,0 +1,154 @@
+@import "tailwindcss";
+@custom-variant dark (&:where(.dark, .dark *));
+
+/* ───────── Palette : Émeraude / Jade moderne & ardoise neutre (sans bleu) ───────── */
+:root {
+  --s50: #f8fafc; --s100: #f1f5f9; --s200: #e2e8f0; --s300: #cbd5e1; --s400: #94a3b8; --s500: #64748b; --s600: #475569; --s700: #334155; --s800: #1e293b; --s900: #0f172a;
+  --surface: #ffffff; --ink: #0f172a; --ink-2: #1e293b;
+  --b50: #ecfdf5; --b100: #d1fae5; --b500: #10b981; --b600: #059669; --b700: #047857; --b800: #065f46;
+  --e50: #ecfdf5; --e100: #d1fae5; --e700: #047857; --e800: #065f46;
+  --a50: #fffbeb; --a100: #fef3c7; --a700: #b45309; --a800: #92400e;
+  --r50: #fef2f2; --r100: #fee2e2; --r700: #b91c1c; --r800: #991b1b;
+  --accent: #059669;
+  color-scheme: light;
+}
+.dark {
+  --s50: #0b0f19; --s100: #111827; --s200: #1f2937; --s300: #374151; --s400: #6b7280; --s500: #9ca3af; --s600: #d1d5db; --s700: #e5e7eb; --s800: #f3f4f6; --s900: #f9fafb;
+  --surface: #111827; --ink: #030712; --ink-2: #0b0f19;
+  --b50: #064e3b; --b100: #065f46;
+  --e50: #064e3b; --e100: #065f46; --e700: #6ee7b7; --e800: #a7f3d0;
+  --a50: #382405; --a100: #4d3308; --a700: #fcd34d; --a800: #fde68a;
+  --r50: #3a1517; --r100: #521b1e; --r700: #fca5a5; --r800: #fecaca;
+  --accent: #10b981;
+  color-scheme: dark;
+}
+
+@theme {
+  --font-sans: "Poppins", ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, Arial, sans-serif;
+  --text-xs: 0.8125rem; --text-xs--line-height: 1.25rem;
+  --text-sm: 0.9375rem; --text-sm--line-height: 1.45rem;
+  --text-base: 1rem; --text-base--line-height: 1.6rem;
+  --radius-lg: 0.75rem; --radius-xl: 1rem; --radius-2xl: 1.375rem;
+  --shadow-sm: 0 1px 2px rgb(15 23 42 / 0.04), 0 4px 12px rgb(15 23 42 / 0.03);
+  --shadow-lg: 0 10px 25px rgb(15 23 42 / 0.08), 0 2px 6px rgb(15 23 42 / 0.04);
+  --shadow-xl: 0 20px 50px rgb(15 23 42 / 0.16);
+  --color-slate-50: var(--s50); --color-slate-100: var(--s100); --color-slate-200: var(--s200); --color-slate-300: var(--s300); --color-slate-400: var(--s400);
+  --color-slate-500: var(--s500); --color-slate-600: var(--s600); --color-slate-700: var(--s700); --color-slate-800: var(--s800); --color-slate-900: var(--s900);
+  --color-brand-50: var(--b50); --color-brand-100: var(--b100); --color-brand-500: var(--b500); --color-brand-600: var(--b600); --color-brand-700: var(--b700); --color-brand-800: var(--b800);
+  --color-emerald-50: var(--e50); --color-emerald-100: var(--e100); --color-emerald-700: var(--e700); --color-emerald-800: var(--e800);
+  --color-amber-50: var(--a50); --color-amber-100: var(--a100); --color-amber-700: var(--a700); --color-amber-800: var(--a800);
+  --color-red-50: var(--r50); --color-red-100: var(--r100); --color-red-700: var(--r700); --color-red-800: var(--r800);
+  --color-ink: var(--ink); --color-ink-2: var(--ink-2); --color-accent: var(--accent);
+}
+
+html { font-size: 16px; }
+html, body, #root { height: 100%; }
+body { @apply bg-slate-50 text-slate-800 antialiased; font-family: var(--font-sans); letter-spacing: -0.003em; font-feature-settings: "ss01", "kern"; }
+h1, h2, h3 { letter-spacing: -0.02em; }
+::selection { background: color-mix(in oklab, var(--b600) 25%, transparent); }
+:focus-visible { outline: 2px solid var(--b600); outline-offset: 2px; }
+
+/* Les surfaces « blanches » suivent le thème */
+.dark .bg-white { background-color: var(--surface); }
+.dark .text-brand-700, .dark .text-brand-800 { color: #6ee7b7; }
+.dark .text-red-600 { color: #fca5a5; }
+.dark .border-dashed.border-black { border-color: #000; }
+.dark select, .dark input, .dark textarea { color-scheme: dark; }
+.dark header {
+  background-color: rgba(17, 24, 39, 0.96) !important;
+  border-bottom-color: var(--s200) !important;
+}
+.dark nav[aria-label="Navigation mobile"] {
+  background-color: rgba(17, 24, 39, 0.96) !important;
+  border-top-color: var(--s200) !important;
+}
+
+/* ───────── Icônes propres : monochromes, suppression de la couleur secondaire parasite ───────── */
+.duo { flex-shrink: 0; }
+.duo [opacity="0.2"] { fill: currentColor; opacity: 0.16; }
+
+/* ───────── Fond moderne, doux et aéré (sans grain lourd) ───────── */
+.bg-grain {
+  background-color: var(--s50);
+  background-image: radial-gradient(at 100% 0%, color-mix(in oklab, var(--b500) 3.5%, transparent) 0px, transparent 55%),
+                    radial-gradient(at 0% 100%, color-mix(in oklab, var(--s300) 12%, transparent) 0px, transparent 55%);
+}
+.hero-card {
+  background: radial-gradient(130% 140% at 0% 0%, #065f46 0%, #047857 40%, #0f172a 100%);
+  color: #fff;
+  position: relative;
+  overflow: hidden;
+}
+.hero-card::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: radial-gradient(60% 60% at 100% 0%, rgb(16 185 129 / 0.22), transparent 60%);
+  pointer-events: none;
+}
+.skeleton { background: linear-gradient(90deg, var(--s100) 25%, var(--s200) 37%, var(--s100) 63%); background-size: 400% 100%; animation: km-shimmer 1.4s ease infinite; border-radius: 0.5rem; }
+@keyframes km-shimmer { 0% { background-position: 100% 50%; } 100% { background-position: 0 50%; } }
+@keyframes km-in { from { opacity: 0; transform: translateY(4px); } to { opacity: 1; transform: none; } }
+.km-in { animation: km-in .18s ease-out; }
+@media (prefers-reduced-motion: reduce) { .km-in, .skeleton { animation: none; } }
+.scroll-thin { scrollbar-width: thin; scrollbar-color: var(--s300) transparent; }
+
+/* ───────── Impression propre et fiable des reçus (thermique 58mm / 80mm / A4) ───────── */
+#receipt-print-root {
+  display: none;
+}
+
+@media print {
+  /* Si un reçu est dans receipt-print-root */
+  body:has(#receipt-print-root:not(:empty)) > #root {
+    display: none !important;
+  }
+  body:has(#receipt-print-root:not(:empty)) #receipt-print-root {
+    display: block !important;
+    position: static !important;
+    width: 100% !important;
+    margin: 0 auto !important;
+    padding: 0 !important;
+    background: #ffffff !important;
+    color: #000000 !important;
+  }
+
+  html, body {
+    height: auto !important;
+    min-height: auto !important;
+    overflow: visible !important;
+    background: #ffffff !important;
+    color: #000000 !important;
+    margin: 0 !important;
+    padding: 0 !important;
+  }
+
+  /* Impression standard depuis la page */
+  body * {
+    visibility: hidden;
+  }
+  .print-area, .print-area * {
+    visibility: visible !important;
+  }
+  .print-area {
+    position: static !important;
+    margin: 0 auto !important;
+    display: block !important;
+    width: 100% !important;
+    max-width: 80mm !important;
+    box-shadow: none !important;
+    border: none !important;
+    background: #ffffff !important;
+    color: #000000 !important;
+  }
+  .no-print, nav, aside, header, button {
+    display: none !important;
+  }
+  @page {
+    margin: 4mm;
+    size: auto;
+  }
+}
+.receipt-80mm { width: 80mm; max-width: 80mm; }
+.receipt-58mm { width: 58mm; max-width: 58mm; }
+.receipt-a4 { width: 100%; max-width: 190mm; }

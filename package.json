@@ -1,0 +1,48 @@
+{
+  "name": "k-manage",
+  "version": "1.1.0",
+  "private": true,
+  "description": "K-Manage — logiciel de gestion commerciale (MERN + TypeScript)",
+  "license": "UNLICENSED",
+  "workspaces": [
+    "packages/*",
+    "apps/*"
+  ],
+  "engines": {
+    "node": ">=22.9"
+  },
+  "scripts": {
+    "dev": "concurrently -k -n api,web -c blue,green \"npm run dev -w @k-manage/server\" \"npm run dev -w @k-manage/client\"",
+    "build": "npm run build -w @k-manage/server && npm run build -w @k-manage/client",
+    "start": "npm run start -w @k-manage/server",
+    "test": "npm run test -w @k-manage/shared && npm run test -w @k-manage/server && npm run test -w @k-manage/client",
+    "test:coverage": "npm run test:coverage -w @k-manage/shared && npm run test:coverage -w @k-manage/server && npm run test:coverage -w @k-manage/client",
+    "test:e2e": "npm run e2e -w @k-manage/client",
+    "lint": "eslint .",
+    "format": "prettier --write \"**/*.{ts,tsx,json,md}\"",
+    "typecheck": "npm run typecheck -w @k-manage/shared && npm run typecheck -w @k-manage/server && npm run typecheck -w @k-manage/client",
+    "check:env": "npm run check:env -w @k-manage/server",
+    "check:mongo": "node --env-file-if-exists=.env scripts/check-mongo.mjs",
+    "seed": "npm run seed -w @k-manage/server",
+    "make-admin": "npm run make-admin -w @k-manage/server --",
+    "audit:deps": "npm audit --omit=dev"
+  },
+  "devDependencies": {
+    "@eslint/js": "^10.0.1",
+    "@vitest/coverage-v8": "^5.0.5",
+    "concurrently": "^10.0.6",
+    "eslint": "^10.13.0",
+    "prettier": "^3.9.10",
+    "typescript": "~5.9.3",
+    "typescript-eslint": "^8.71.2"
+  },
+  "type": "module",
+  "overrides": {
+    "exceljs": {
+      "uuid": "^11.1.0"
+    }
+  },
+  "dependencies": {
+    "framer-motion": "^14.4.0"
+  }
+}
