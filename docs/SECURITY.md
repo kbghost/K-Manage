@@ -35,5 +35,5 @@ Aucun secret dans le code ni dans `.env.example`. Les erreurs 500 ne révèlent 
 1. HTTPS partout, `NODE_ENV=production`, `TRUST_PROXY=true` derrière un proxy.
 2. MongoDB avec authentification, réseau privé, replica set, sauvegardes testées (voir `DEPLOYMENT.md`).
 3. Configurer `SMTP_URL` (réinitialisation de mot de passe) ; vérifier que `DEV_EXPOSE_RESET_TOKEN` est absent.
-4. Ne jamais exécuter `npm run seed` en production (le script s'y refuse).
+4. Le seed standard est interdit en production. Un seed de demonstration peut etre explicitement active pour une execution ponctuelle avec `ALLOW_DEMO_SEED_IN_PRODUCTION=true`, `DEMO_SEED_PASSWORD` et `npm run seed:production-demo -w @k-manage/server`. Il cree des comptes aux identifiants publics documentes : le mot de passe doit rester secret, les comptes doivent etre limites aux donnees demo, et les variables doivent etre retirees apres execution. La remise a zero est interdite en production.
 5. Faire relire/tester la sécurité par un tiers si le logiciel manipule des données sensibles à grande échelle.

@@ -1,6 +1,7 @@
 /**
- * Donnees de DEMONSTRATION (fictives), pour le developpement local uniquement.
- * - Refuse de s'executer en production.
+ * Donnees de DEMONSTRATION (fictives).
+ * - En production, exige un opt-in par variable d'environnement et argument CLI.
+ * - En production, la remise a zero est interdite et un mot de passe explicite est requis.
  * - Idempotent : si le commerce de demo existe deja, ne fait rien (sauf --reset, qui supprime UNIQUEMENT le commerce de demo).
  * - Ne touche jamais aux autres commerces ni aux autres comptes.
  */
@@ -22,13 +23,30 @@ import { AuditLog } from "../modules/audit/models.js";
 import { registerUser } from "../modules/auth/service.js";
 
 const env = loadEnv();
-if (env.NODE_ENV === "production") { console.error("Seed interdit en production."); process.exit(1); }
+const productionDemoSeed = env.NODE_ENV === "production"
+  && env.ALLOW_DEMO_SEED_IN_PRODUCTION
+  && process.argv.includes("--allow-production-demo");
+if (env.NODE_ENV === "production" && !productionDemoSeed) {
+  console.error("Seed production refuse. Activez explicitement ALLOW_DEMO_SEED_IN_PRODUCTION et utilisez --allow-production-demo.");
+  process.exit(1);
+}
+if (env.NODE_ENV === "production" && process.argv.includes("--reset")) {
+  console.error("La remise a zero du seed est interdite en production.");
+  process.exit(1);
+}
+const productionPassword = () => {
+  if (!env.DEMO_SEED_PASSWORD) {
+    console.error("DEMO_SEED_PASSWORD est requis pour le seed en production.");
+    process.exit(1);
+  }
+  return env.DEMO_SEED_PASSWORD;
+};
+const password = productionDemoSeed ? productionPassword() : "Demo-K-Manage-2026";
 configureTransactions(env.USE_TRANSACTIONS);
 await mongoose.connect(env.MONGODB_URI);
 await Promise.all(mongoose.modelNames().map((n) => mongoose.model(n).init()));
 
 const NAME = "Boutique Demo K-Manage (donnees fictives)";
-const PASSWORD = "Demo-K-Manage-2026";
 const USERS = [
   { key: "owner", email: "proprietaire@demo.k-manage.local", fullName: "Awa Proprietaire (demo)", role: "owner" },
   { key: "manager", email: "gerant@demo.k-manage.local", fullName: "Koffi Gerant (demo)", role: "manager" },
@@ -48,13 +66,26 @@ if (existing && process.argv.includes("--reset")) {
   await User.deleteMany({ email: { $in: USERS.map((u) => u.email) } });
   console.log("Commerce de demonstration supprime.");
 } else if (existing) {
-  console.log("Le commerce de demonstration existe deja : rien a faire. (utilisez --reset pour le regenerer)");
+  console.log(productionDemoSeed
+    ? "Le commerce de demonstration existe deja : rien a faire. La remise a zero est interdite en production."
+    : "Le commerce de demonstration existe deja : rien a faire. (utilisez --reset pour le regenerer)");
   await mongoose.disconnect(); process.exit(0);
+}
+
+if (productionDemoSeed) {
+  const existingDemoUsers = await User.find({ email: { $in: USERS.map((u) => u.email) } }).select("email").lean();
+  if (existingDemoUsers.length > 0) {
+    console.error("Seed production refuse : un ou plusieurs comptes demo existent deja sans commerce de demo. Verifiez la base avant toute intervention.");
+    await mongoose.disconnect();
+    process.exit(1);
+  }
 }
 
 const ids: Record<string, Types.ObjectId> = {};
 for (const u of USERS) {
-  const user = (await User.findOne({ email: u.email })) ?? (await registerUser({ email: u.email, password: PASSWORD, fullName: u.fullName }));
+  const user = productionDemoSeed
+    ? await registerUser({ email: u.email, password, fullName: u.fullName })
+    : (await User.findOne({ email: u.email })) ?? (await registerUser({ email: u.email, password, fullName: u.fullName }));
   ids[u.key] = user._id;
 }
 const business = await Business.create({ name: NAME, ownerId: ids.owner, address: "Quartier fictif, Cotonou", phone: "+229 00 00 00 00", isDemo: true, receipt: { header: "Boutique de demonstration", footer: "Merci ! (donnees fictives)", paperWidth: "80mm" } });
@@ -138,6 +169,7 @@ const expected = 20000 + pays.reduce((s, p) => s + (p.direction === "in" ? p.amo
 await CashSession.updateOne({ _id: session._id }, { status: "closed", closedAt: new Date(), closedBy: ids.cashier, expectedAmount: expected, countedAmount: expected - 100, difference: -100, note: "Ecart de demonstration" });
 
 console.log(`Donnees de demonstration creees pour « ${NAME} ».`);
-console.log(`Comptes (mot de passe : ${PASSWORD}) :`);
+if (!productionDemoSeed) console.log(`Comptes (mot de passe : ${password}) :`);
+else console.log("Comptes de demonstration crees avec DEMO_SEED_PASSWORD.");
 for (const u of USERS) console.log(`  - ${u.role.padEnd(11)} ${u.email}`);
 await mongoose.disconnect();

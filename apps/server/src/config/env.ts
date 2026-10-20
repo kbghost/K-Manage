@@ -13,6 +13,8 @@ const schema = z.object({
   MAIL_FROM: z.string().default("K-Manage <no-reply@localhost>"),
   TRUST_PROXY: z.enum(["true", "false"]).default("false").transform((v) => v === "true"),
   DEV_EXPOSE_RESET_TOKEN: z.enum(["true", "false"]).default("false").transform((v) => v === "true"),
+  ALLOW_DEMO_SEED_IN_PRODUCTION: z.enum(["true", "false"]).default("false").transform((v) => v === "true"),
+  DEMO_SEED_PASSWORD: z.string().min(10).max(200).optional(),
 });
 
 export type Env = z.infer<typeof schema>;

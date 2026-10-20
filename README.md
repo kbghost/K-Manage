@@ -60,8 +60,8 @@ Ouvrez **http://localhost:5173**. Documentation interactive de l'API : http://lo
 | Caissier | caissier@demo.k-manage.local |
 | Magasinier | magasinier@demo.k-manage.local |
 
-Le seed refuse de s'exécuter en production, est idempotent (ne refait rien si la démo existe) et `npm run seed -- --reset`
-ne supprime **que** le commerce de démonstration et ses 4 comptes.
+Le seed standard refuse de s'exécuter en production. Le commerce de démo est idempotent (ne refait rien s'il existe) ; `npm run seed -- --reset`
+ne supprime **que** le commerce de démonstration et ses 4 comptes, mais ne doit jamais être utilisé en production. Pour une démonstration ponctuelle en production, consultez [`docs/DEPLOYMENT.md`](docs/DEPLOYMENT.md) : le mode dédié exige un opt-in temporaire et un mot de passe secret.
 
 ## Commandes
 | Commande | Rôle |

@@ -29,7 +29,7 @@ Interface : `VITE_API_URL` (par défaut `/api/v1`, à définir au *build* si l'A
 3. Démarrer l'API (`npm run start`) ; sonde de santé : `GET /api/v1/health`.
 4. Au premier démarrage, les index (dont TTL et unicité partielle) sont créés ; **en production, un échec de création arrête le serveur**.
 5. Créer le premier compte via l'interface. `npm run make-admin -- email` si un administrateur de plateforme est souhaité.
-6. **Ne jamais lancer `npm run seed`** en production.
+6. Ne lancez jamais le seed standard en production. Si des donnees fictives sont indispensables pour une demonstration, sauvegardez d'abord Atlas, puis activez temporairement `ALLOW_DEMO_SEED_IN_PRODUCTION=true` et `DEMO_SEED_PASSWORD` dans l'environnement du service et lancez `npm run seed:production-demo -w @k-manage/server` une seule fois depuis le shell Render. Utilisez un mot de passe fort unique, ne le publiez pas et retirez les deux variables apres execution. Cette commande ajoute un commerce demo et quatre comptes demo dans la base partagee, sans reset; ne l'utilisez pas si vous ne voulez pas voir de donnees fictives dans les rapports ou les listes. Ne lancez jamais `--reset` en production. Avant d'executer, verifiez que les quatre adresses `@demo.k-manage.local` ne sont pas deja associees a de vrais utilisateurs : le script refuse alors de continuer.
 
 ## HTTPS, journaux, surveillance
 HTTPS terminé par le proxy/hébergeur (HSTS recommandé). Les logs applicatifs vont sur la sortie standard (collecter via systemd/PM2/hébergeur) et ne contiennent ni secrets ni mots de passe. Surveiller `/api/v1/health`, l'espace disque (`UPLOAD_DIR`) et les erreurs 5xx.
