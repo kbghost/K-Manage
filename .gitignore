@@ -6,3 +6,5 @@ coverage/
 *.zip
 .DS_Store
 uploads/
+!apps/server/src/modules/uploads/
+!apps/server/src/modules/uploads/**
