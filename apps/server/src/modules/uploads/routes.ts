@@ -48,7 +48,7 @@ export function uploadsRouter(env: Env) {
   }));
 
   // Lecture : l'appartenance au commerce proprietaire du fichier est verifiee a chaque requete.
-  r.get("/:id", requireAuth, ah(async (req, res) => {
+  r.get("/:id", requireAuth, ah(async (req, res, next) => {
     const u = await Upload.findById(oid.parse(idParam(req))).lean();
     const ok = u && (await Membership.exists({ businessId: u.businessId, userId: req.auth!.userId, status: "active" }));
     if (!u || !ok) throw notFound("Fichier introuvable");
@@ -67,7 +67,14 @@ export function uploadsRouter(env: Env) {
       res.send(Buffer.from(await remote.arrayBuffer()));
       return;
     }
-    res.sendFile(path.join(dir, String(u.businessId), path.basename(u.filename)));
+    res.sendFile(path.join(dir, String(u.businessId), path.basename(u.filename)), (error) => {
+      if (!error) return;
+      if ((error as NodeJS.ErrnoException).code === "ENOENT") {
+        next(notFound("Fichier introuvable ou supprime du stockage local"));
+        return;
+      }
+      next(error);
+    });
   }));
   return r;
 }

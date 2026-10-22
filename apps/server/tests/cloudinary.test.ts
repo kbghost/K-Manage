@@ -45,4 +45,13 @@ describe("stockage Cloudinary", () => {
     expect(sentUrl).toBe("https://api.cloudinary.com/v1_1/test-cloud/raw/upload");
     expect(sentForm?.get("public_id")).toMatch(/\.pdf$/);
   });
+
+  it("journalise uniquement le statut HTTP quand Cloudinary refuse un televersement", async () => {
+    vi.stubGlobal("fetch", vi.fn(async () => new Response("credentials rejected", { status: 401 })));
+    const log = vi.spyOn(console, "error").mockImplementation(() => undefined);
+
+    await expect(uploadToCloudinary(env, Buffer.from("image"), { mime: "image/png", ext: "png" }, "b1"))
+      .rejects.toMatchObject({ code: "MEDIA_STORAGE_FAILED", status: 502 });
+    expect(log).toHaveBeenCalledWith("Cloudinary a refuse le televersement (HTTP 401).");
+  });
 });

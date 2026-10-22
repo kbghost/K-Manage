@@ -46,6 +46,7 @@ export async function uploadToCloudinary(env: CloudinaryConfig, buffer: Buffer, 
   }
 
   if (!response.ok) {
+    console.error(`Cloudinary a refuse le televersement (HTTP ${response.status}).`);
     throw new AppError(502, "MEDIA_STORAGE_FAILED", "Le stockage du fichier a echoue. Reessayez plus tard.");
   }
   const data: unknown = await response.json();
