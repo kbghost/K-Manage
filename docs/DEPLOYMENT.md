@@ -19,9 +19,20 @@ Le déploiement est **facultatif** pour le développement local et n'a pas été
 | `TRUST_PROXY` | `true` derrière un proxy |
 | `COOKIE_DOMAIN` | domaine parent si interface et API sont sur des sous-domaines |
 | `SMTP_URL`, `MAIL_FROM` | requis pour la réinitialisation de mot de passe |
-| `UPLOAD_DIR` | dossier **persistant** (volume) ou à remplacer par du stockage objet |
+| `CLOUDINARY_CLOUD_NAME` | nom du cloud Cloudinary (requis pour les fichiers en production) |
+| `CLOUDINARY_API_KEY` | clé API Cloudinary |
+| `CLOUDINARY_API_SECRET` | secret API Cloudinary ; secret, ne jamais le committer |
+| `UPLOAD_DIR` | dossier local utilisé uniquement hors production quand Cloudinary n'est pas configuré |
 | `DEV_EXPOSE_RESET_TOKEN` | **ne pas définir** (l'API refuse de démarrer si actif) |
 Interface : `VITE_API_URL` (par défaut `/api/v1`, à définir au *build* si l'API est sur un autre sous-domaine, ex. `https://api.exemple.com/api/v1`).
+
+### Stockage persistant des médias avec Cloudinary et Render
+1. Créez un compte Cloudinary et récupérez `Cloud name`, `API Key` et `API Secret` depuis le tableau de bord.
+2. Dans Render, ouvrez le service **API** → **Environment** et ajoutez `CLOUDINARY_CLOUD_NAME`, `CLOUDINARY_API_KEY` et `CLOUDINARY_API_SECRET`. Ne publiez jamais l'API Secret et ne le mettez pas dans le dépôt.
+3. Redéployez le service. En production, le serveur refuse de démarrer si l'une de ces trois variables manque ou est vide.
+4. Vérifiez en téléversant une image produit et un justificatif, puis ouvrez-les depuis l'application. Les nouveaux médias sont stockés dans Cloudinary ; l'API conserve les métadonnées dans MongoDB et vérifie toujours l'appartenance au commerce avant de servir un fichier.
+
+En développement, sans variables Cloudinary, les fichiers continuent d'être écrits dans `UPLOAD_DIR`. Les anciens médias déjà enregistrés sur le disque local ne sont pas migrés automatiquement ; importez-les à nouveau depuis l'application si le stockage éphémère les a supprimés.
 
 ## Étapes
 1. `npm ci` · `npm run typecheck` · `npm run lint` · `npm test` · `npm run build`.

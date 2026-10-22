@@ -11,6 +11,7 @@ import { can, idParam, send } from "../../utils/http.js";
 import { oid } from "../../utils/pagination.js";
 import { Membership } from "../businesses/models.js";
 import { Upload } from "./models.js";
+import { cloudinaryConfigured, uploadToCloudinary } from "./cloudinary.js";
 
 /** Type reel du fichier d'apres sa signature (jamais d'apres le nom ou le type declare par le client). */
 export function sniff(buf: Buffer): { mime: string; ext: string } | null {
@@ -31,10 +32,18 @@ export function uploadsRouter(env: Env) {
     if (!req.file) throw new AppError(400, "FILE_REQUIRED", "Aucun fichier recu");
     const kind = sniff(req.file.buffer);
     if (!kind) throw new AppError(415, "UNSUPPORTED_FILE", "Format non accepte (PNG, JPEG, WEBP ou PDF, 2 Mo max)");
-    const businessId = req.tenant!.businessId; const filename = `${randomUUID()}.${kind.ext}`;
-    await fs.mkdir(path.join(dir, String(businessId)), { recursive: true });
-    await fs.writeFile(path.join(dir, String(businessId), filename), req.file.buffer, { flag: "wx" });
-    const u = await Upload.create({ businessId, userId: req.auth!.userId, filename, mime: kind.mime, size: req.file.size });
+    const businessId = req.tenant!.businessId;
+    let filename = `${randomUUID()}.${kind.ext}`;
+    let cloudinaryUrl: string | undefined;
+    if (cloudinaryConfigured(env)) {
+      const stored = await uploadToCloudinary(env, req.file.buffer, kind, String(businessId));
+      filename = stored.publicId;
+      cloudinaryUrl = stored.url;
+    } else {
+      await fs.mkdir(path.join(dir, String(businessId)), { recursive: true });
+      await fs.writeFile(path.join(dir, String(businessId), filename), req.file.buffer, { flag: "wx" });
+    }
+    const u = await Upload.create({ businessId, userId: req.auth!.userId, filename, mime: kind.mime, size: req.file.size, cloudinaryUrl });
     send(res, { id: u.id, mime: u.mime, size: u.size }, 201);
   }));
 
@@ -47,6 +56,17 @@ export function uploadsRouter(env: Env) {
     res.setHeader("X-Content-Type-Options", "nosniff");
     res.setHeader("Cache-Control", "private, max-age=3600");
     res.setHeader("Content-Disposition", "inline");
+    if (u.cloudinaryUrl) {
+      let remote: Response;
+      try {
+        remote = await fetch(u.cloudinaryUrl);
+      } catch {
+        throw new AppError(502, "MEDIA_STORAGE_UNAVAILABLE", "Le fichier est temporairement indisponible. Reessayez plus tard.");
+      }
+      if (!remote.ok) throw new AppError(502, "MEDIA_STORAGE_UNAVAILABLE", "Le fichier est temporairement indisponible. Reessayez plus tard.");
+      res.send(Buffer.from(await remote.arrayBuffer()));
+      return;
+    }
     res.sendFile(path.join(dir, String(u.businessId), path.basename(u.filename)));
   }));
   return r;

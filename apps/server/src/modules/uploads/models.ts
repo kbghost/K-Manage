@@ -8,6 +8,7 @@ const uploadSchema = new Schema(
     filename: { type: String, required: true }, // nom aleatoire cote serveur, jamais fourni par le client
     mime: { type: String, required: true },
     size: { type: Number, required: true },
+    cloudinaryUrl: { type: String },
   },
   { timestamps: { createdAt: true, updatedAt: false } },
 );
