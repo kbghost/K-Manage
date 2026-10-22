@@ -41,7 +41,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const selectBusiness = useCallback((id: string) => { session.setBusiness(id); setActiveId(id); qc.removeQueries({ predicate: (q) => !["me", "businesses"].includes(String(q.queryKey[0])) }); }, [qc]);
   const signIn: Ctx["signIn"] = useCallback(async (path, body) => {
     const { data } = await api<User>("POST", `/auth/${path}`, body, { tenant: false });
-    session.setCsrf(data.csrfToken ?? null); qc.clear(); await qc.invalidateQueries({ queryKey: ["me"] });
+    session.setCsrf(data.csrfToken ?? null);
+    qc.removeQueries({ predicate: (query) => query.queryKey[0] !== "me" });
+    qc.setQueryData(["me"], data);
   }, [qc]);
   const signOut = useCallback(async () => {
     try { await api("POST", "/auth/logout"); } catch { /* deja deconnecte */ }

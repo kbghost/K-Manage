@@ -10,7 +10,7 @@ const ThemeCtx = createContext<Ctx | null>(null);
 export const useTheme = () => { const c = useContext(ThemeCtx); if (!c) throw new Error("ThemeProvider manquant"); return c; };
 
 export function ThemeProvider({ children }: { children: ReactNode }) {
-  const [choice, setChoiceState] = useState<ThemeChoice>(() => (localStorage.getItem(KEY) as ThemeChoice | null) ?? "system");
+  const [choice, setChoiceState] = useState<ThemeChoice>(() => (localStorage.getItem(KEY) as ThemeChoice | null) ?? "light");
   const [resolved, setResolved] = useState<"light" | "dark">(() => resolveTheme(choice));
   useEffect(() => {
     const apply = () => { const r = resolveTheme(choice); setResolved(r); document.documentElement.classList.toggle("dark", r === "dark"); };

@@ -23,6 +23,32 @@ describe("authentification et navigation", () => {
     await userEvent.type(await screen.findByLabelText("Email"), "a@b.bj"); await userEvent.type(screen.getByLabelText("Mot de passe"), "mauvais"); await userEvent.click(screen.getByRole("button", { name: "Se connecter" }));
     expect(await screen.findByRole("alert")).toHaveTextContent("Email ou mot de passe incorrect");
   });
+  it("redirige immédiatement après connexion vers la création de boutique sans commerce", async () => {
+    mockApi({
+      ...notLogged,
+      "POST /auth/login": () => ({ body: { data: { id: "u1", email: "a@b.bj", fullName: "Awa Test", csrfToken: "csrf" } } }),
+      "GET /businesses": () => ({ body: { data: [] } }),
+    });
+    renderApp(<App />, "/login");
+    await userEvent.type(await screen.findByLabelText("Email"), "a@b.bj");
+    await userEvent.type(screen.getByLabelText("Mot de passe"), "motdepasse");
+    await userEvent.click(screen.getByRole("button", { name: "Se connecter" }));
+    expect(await screen.findByRole("heading", { name: "Bienvenue ! Enregistrez votre boutique" })).toBeInTheDocument();
+  });
+  it("redirige immédiatement après inscription vers la création de boutique", async () => {
+    mockApi({
+      ...notLogged,
+      "POST /auth/register": () => ({ status: 201, body: { data: { id: "u1", email: "a@b.bj", fullName: "Awa Test", csrfToken: "csrf" } } }),
+      "GET /businesses": () => ({ body: { data: [] } }),
+    });
+    renderApp(<App />, "/register");
+    await userEvent.type(await screen.findByLabelText("Nom complet"), "Awa Test");
+    await userEvent.type(screen.getByLabelText("Email"), "a@b.bj");
+    await userEvent.type(screen.getByLabelText("Mot de passe"), "motdepasse123");
+    await userEvent.type(screen.getByPlaceholderText("Confirmez votre mot de passe"), "motdepasse123");
+    await userEvent.click(screen.getByRole("button", { name: "Creer mon compte" }));
+    expect(await screen.findByRole("heading", { name: "Bienvenue ! Enregistrez votre boutique" })).toBeInTheDocument();
+  });
   it("connecte puis affiche l'application avec la navigation filtree par permissions", async () => {
     mockApi({ ...loggedIn, "GET /reports/dashboard": () => ({ body: { data: { summary: { salesCount: 0, netSales: 0, collected: 0, grossMargin: null, expenses: null, receivables: 0, payables: 0, lowStockCount: 0, outOfStockCount: 0, refunds: 0 }, today: { revenue: 0, salesCount: 0 }, series: [], topProducts: [], recent: [] } } }) });
     renderApp(<App />, "/");
