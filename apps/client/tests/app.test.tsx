@@ -67,6 +67,14 @@ describe("authentification et navigation", () => {
     await userEvent.click(screen.getByRole("button", { name: "Ouvrir le menu" })); expect(screen.getByRole("dialog", { name: "Menu" })).toBeInTheDocument();
     await userEvent.click(screen.getByRole("button", { name: "Fermer le menu" })); await waitFor(() => expect(screen.queryByRole("dialog", { name: "Menu" })).not.toBeInTheDocument());
   });
+  it("ferme le menu mobile après une navigation", async () => {
+    mockApi({ ...loggedIn, "GET /catalog/products": () => ({ body: { data: PRODUCTS, meta: { total: 2, page: 1, limit: 20, pages: 1 } } }) });
+    renderApp(<App />, "/products"); await screen.findByRole("heading", { name: "Produits" });
+    await userEvent.click(screen.getByRole("button", { name: "Ouvrir le menu" }));
+    const drawer = screen.getByRole("dialog", { name: "Menu" });
+    await userEvent.click(within(drawer).getByRole("link", { name: "Stocks" }));
+    await waitFor(() => expect(screen.queryByRole("dialog", { name: "Menu" })).not.toBeInTheDocument());
+  });
 });
 
 describe("produits", () => {

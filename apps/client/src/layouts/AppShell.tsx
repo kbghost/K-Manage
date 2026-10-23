@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { NavLink, useLocation, useNavigate, useOutlet } from "react-router-dom";
 import { useQuery } from "@tanstack/react-query";
 import { AnimatePresence, motion } from "motion/react";
@@ -113,7 +113,8 @@ function BottomNav({ onMenu }: { onMenu: () => void }) {
 }
 
 function QuickActions() {
-  const { can } = useAuth(); const nav = useNavigate(); const [open, setOpen] = useState(false);
+  const { can } = useAuth(); const nav = useNavigate(); const location = useLocation(); const [open, setOpen] = useState(false);
+  useEffect(() => { setOpen(false); }, [location.pathname, location.search]);
   const acts = [
     can("sales.create") && { label: "Nouvelle vente", icon: ShoppingCart, to: "/pos" }, can("products.create") && { label: "Nouveau produit", icon: Package, to: "/products?new=1" },
     can("expenses.create") && { label: "Nouvelle dépense", icon: Wallet, to: "/expenses?new=1" }, can("stock.adjust") && { label: "Mouvement de stock", icon: Warehouse, to: "/stock?new=1" },
@@ -139,6 +140,7 @@ export default function AppShell() {
   const { user, business, businesses, activeId, selectBusiness, signOut, can } = useAuth(); const theme = useTheme(); const nav = useNavigate(); const loc = useLocation(); const outlet = useOutlet();
   const [drawer, setDrawer] = useState(false); const [menu, setMenu] = useState(false); const [palette, setPalette] = useState(false); const [help, setHelp] = useState(false);
   const [collapsed, setCollapsed] = useState(() => localStorage.getItem("km_nav_collapsed") === "1");
+  useEffect(() => { setDrawer(false); }, [loc.pathname, loc.search]);
   useGlobalShortcuts({ onPalette: () => setPalette(true), onHelp: () => setHelp(true), go: (to) => nav(to), toggleTheme: theme.toggle, can, disabled: palette });
   const toggleCollapse = () => setCollapsed((c) => { localStorage.setItem("km_nav_collapsed", c ? "0" : "1"); return !c; });
   const onPos = loc.pathname === "/pos";
