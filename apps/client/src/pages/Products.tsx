@@ -171,125 +171,16 @@ export default function Products() {
       <Card>
         <div className="mb-4 flex flex-wrap items-end gap-2.5 sm:gap-3">
           <div className="w-full sm:w-auto sm:flex-1 sm:max-w-xs">
-            <SearchBox value={q} onChange={setQ} placeholder="Nom, référence ou code-barres..." />
+            <SearchBox value={q} onChange={setQ} placeholder="Nom, SKU ou code-barres..." />
           </div>
           <Select label="Catégorie" value={categoryId} onChange={(e) => { setCategoryId(e.target.value); setPage(1); }} className="flex-1 min-w-[130px] sm:w-44 sm:flex-initial"><option value="">Toutes les catégories</option>{cats_.map((c) => <option key={c.id} value={c.id}>{c.name}</option>)}</Select>
           <Select label="État" value={status} onChange={(e) => { setStatus(e.target.value); setPage(1); }} className="flex-1 min-w-[130px] sm:w-36 sm:flex-initial"><option value="active">Articles en vente</option><option value="archived">Articles archivés</option><option value="all">Tous les articles</option></Select>
           <label className="flex items-center gap-2 pb-2 text-sm text-slate-700 dark:text-slate-300 cursor-pointer"><input type="checkbox" className="rounded text-brand-600" checked={low} onChange={(e) => { setLow(e.target.checked); setPage(1); }} />Stock presque fini ou épuisé</label>
         </div>
 
-        {/* Vue mobile : cartes complètes avec stock bien en vue et sans défilement horizontal */}
-        <div className="md:hidden">
-          {list.error ? (
-            <ErrorState error={list.error} retry={() => void list.refetch()} />
-          ) : list.loading && !list.items ? (
-            <div className="space-y-3">
-              {Array.from({ length: 4 }).map((_, i) => (
-                <div key={i} className="rounded-2xl border border-slate-200 dark:border-slate-800 p-4 space-y-3">
-                  <div className="flex gap-3">
-                    <Skeleton className="size-14 rounded-xl" />
-                    <div className="flex-1 space-y-2">
-                      <Skeleton className="h-4 w-3/4" />
-                      <Skeleton className="h-3 w-1/2" />
-                    </div>
-                  </div>
-                  <Skeleton className="h-10 rounded-xl" />
-                </div>
-              ))}
-            </div>
-          ) : !list.items?.length ? (
-            <EmptyState icon={Package} title="Aucun produit trouvé" text={q || low || categoryId ? "Aucun article ne correspond à votre recherche." : "Ajoutez votre premier article ou importez une liste CSV."} action={can("products.create") ? <Button onClick={() => setEdit("new")}><Plus className="size-4" />Nouveau produit</Button> : undefined} />
-          ) : (
-            <div className="space-y-3">
-              {list.items.map((p) => {
-                const margin = showCost && p.costPrice > 0 ? p.salePrice - p.costPrice : null;
-                return (
-                  <div
-                    key={p.id}
-                    className="rounded-2xl border border-slate-200/90 dark:border-slate-800 bg-white dark:bg-slate-900 p-3.5 shadow-sm space-y-3 transition-shadow hover:shadow-md"
-                  >
-                    <div className="flex items-start gap-3">
-                      <div className="relative size-14 shrink-0 overflow-hidden rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-100 dark:bg-slate-800 flex items-center justify-center">
-                        {p.imageUploadId ? (
-                          <img src={fileUrl(p.imageUploadId)} alt="" className="size-full object-cover" />
-                        ) : (
-                          <Package className="size-6 text-slate-400" aria-hidden />
-                        )}
-                      </div>
-                      <div className="min-w-0 flex-1">
-                        <div className="flex items-start justify-between gap-2">
-                          <p className="font-semibold text-slate-900 dark:text-slate-100 text-sm leading-snug">{p.name}</p>
-                          <span className="text-base font-extrabold tabular-nums text-brand-700 dark:text-brand-400 shrink-0">
-                            {money(p.salePrice)}
-                          </span>
-                        </div>
-                        <div className="mt-0.5 flex flex-wrap items-center gap-1.5 text-xs text-slate-400">
-                          <span className="font-mono">{p.sku}</span>
-                          {p.barcode && <span>· {p.barcode}</span>}
-                        </div>
-                      </div>
-                    </div>
-
-                    {/* Zone de stock dont dispose le commerçant et détails */}
-                    <div className="rounded-xl bg-slate-50 dark:bg-slate-800/60 p-2.5 text-xs space-y-1.5 border border-slate-100 dark:border-slate-800">
-                      <div className="flex items-center justify-between">
-                        <span className="text-slate-600 dark:text-slate-300 font-medium">Stock dont vous disposez :</span>
-                        {p.status === "archived" ? (
-                          <Badge>Archivé</Badge>
-                        ) : p.outOfStock ? (
-                          <Badge tone="red">❌ Rupture (0 {p.unit})</Badge>
-                        ) : p.lowStock ? (
-                          <Badge tone="amber">⚠️ Presque fini : {qty(p.stock)} {p.unit}</Badge>
-                        ) : (
-                          <Badge tone="green">📦 {qty(p.stock)} {p.unit} en stock</Badge>
-                        )}
-                      </div>
-
-                      <div className="flex items-center justify-between text-slate-600 dark:text-slate-300 pt-1.5 border-t border-slate-200/60 dark:border-slate-700/60">
-                        <span>Rayon : <b>{catName(p.categoryId)}</b></span>
-                        {showCost && p.costPrice > 0 && (
-                          <span className="tabular-nums">Achat : <b>{money(p.costPrice)}</b>{margin !== null && <span className="text-emerald-700 dark:text-emerald-400 font-semibold"> (+{money(margin)})</span>}</span>
-                        )}
-                      </div>
-                    </div>
-
-                    {/* Actions rapides sur mobile */}
-                    <div className="flex items-center justify-end gap-1 pt-1 border-t border-slate-100 dark:border-slate-800">
-                      <Button variant="ghost" size="sm" aria-label={`Historique de ${p.name}`} onClick={() => setHist(p)}>
-                        <History className="size-4" />Historique
-                      </Button>
-                      <Button variant="ghost" size="sm" aria-label={`Étiquette de ${p.name}`} onClick={() => setLabels([p])}>
-                        <Printer className="size-4" />Étiquette
-                      </Button>
-                      {can("products.update") && (
-                        <Button variant="secondary" size="sm" aria-label={`Modifier ${p.name}`} onClick={() => setEdit(p)}>
-                          <Pencil className="size-4" />Modifier
-                        </Button>
-                      )}
-                      {can("products.update") && (
-                        p.status === "active" ? (
-                          <Button variant="ghost" size="sm" aria-label={`Archiver ${p.name}`} title="Archiver l'article" onClick={() => setArch(p)}>
-                            <Archive className="size-4 text-slate-400" />
-                          </Button>
-                        ) : (
-                          <Button variant="ghost" size="sm" aria-label={`Restaurer ${p.name}`} title="Restaurer l'article" onClick={() => setStatusAct.mutate({ p, status: "active" })}>
-                            <RotateCcw className="size-4 text-emerald-600" />
-                          </Button>
-                        )
-                      )}
-                    </div>
-                  </div>
-                );
-              })}
-            </div>
-          )}
-        </div>
-
-        {/* Vue tableau pour écrans moyens et grands (Desktop & Tablettes) */}
-        <div className="hidden md:block">
-          <DataTable rows={list.items} loading={list.loading} error={list.error} onRetry={() => void list.refetch()}
-            empty={<EmptyState icon={Package} title="Aucun produit trouvé" text={q || low || categoryId ? "Aucun article ne correspond à votre recherche." : "Ajoutez votre premier article ou importez une liste CSV."} action={can("products.create") ? <Button onClick={() => setEdit("new")}><Plus className="size-4" />Nouveau produit</Button> : undefined} />}
-            columns={[
+        <DataTable rows={list.items} loading={list.loading} error={list.error} onRetry={() => void list.refetch()}
+          empty={<EmptyState icon={Package} title="Aucun produit trouvé" text={q || low || categoryId ? "Aucun article ne correspond à votre recherche." : "Ajoutez votre premier article ou importez une liste CSV."} action={can("products.create") ? <Button onClick={() => setEdit("new")}><Plus className="size-4" />Nouveau produit</Button> : undefined} />}
+          columns={[
               { key: "n", header: "Article", render: (p) => (
                 <div className="flex items-center gap-3">
                   {p.imageUploadId ? (
@@ -324,7 +215,6 @@ export default function Products() {
                 </div>
               ) },
             ]} />
-        </div>
         <Pagination meta={list.meta} onPage={setPage} />
       </Card>
       <Modal open={!!edit} onClose={() => setEdit(null)} title={edit === "new" ? "Nouveau produit" : "Modifier l'article"} size="lg">

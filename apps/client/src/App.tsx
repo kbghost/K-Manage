@@ -77,6 +77,8 @@ export default function App() {
         <Route path="/forgot-password" element={<ForgotPasswordPage />} />
         <Route path="/reset-password" element={<ResetPasswordPage />} />
         <Route path="/welcome" element={<Landing />} />
+        <Route path="/details" element={<Landing defaultSection="details" />} />
+        <Route path="/tarifs" element={<Landing defaultSection="tarifs" />} />
         <Route element={<RequireAuth><Gate /></RequireAuth>}>
           <Route index element={<Home />} />
           <Route path="billing" element={<Billing />} />

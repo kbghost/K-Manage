@@ -9,13 +9,36 @@ import type { Env } from "../../config/env.js";
 
 export const MONTHLY_PRICE = 7000;
 
-function phoneForFedaPay(value: string) {
+export function phoneForFedaPay(value: string): { number: number; country: string } {
   const digits = value.replace(/\D/g, "");
-  const localNumber = digits.startsWith("00229") ? digits.slice(5) : digits.startsWith("229") ? digits.slice(3) : digits;
-  if (!/^\d{8,10}$/.test(localNumber)) {
-    throw new AppError(400, "INVALID_PHONE", "Saisissez un numéro béninois valide, avec ou sans l'indicatif +229.");
+  const countryPrefixes = [
+    { prefix: "00229", country: "bj" },
+    { prefix: "229", country: "bj" },
+    { prefix: "00225", country: "ci" },
+    { prefix: "225", country: "ci" },
+    { prefix: "00228", country: "tg" },
+    { prefix: "228", country: "tg" },
+    { prefix: "00221", country: "sn" },
+    { prefix: "221", country: "sn" },
+    { prefix: "00226", country: "bf" },
+    { prefix: "226", country: "bf" },
+    { prefix: "00223", country: "ml" },
+    { prefix: "223", country: "ml" },
+    { prefix: "00227", country: "ne" },
+    { prefix: "227", country: "ne" },
+  ];
+  for (const { prefix, country } of countryPrefixes) {
+    if (digits.startsWith(prefix)) {
+      const local = digits.slice(prefix.length);
+      if (/^\d{8,10}$/.test(local)) {
+        return { number: Number(local), country };
+      }
+    }
   }
-  return Number(localNumber);
+  if (/^\d{8,10}$/.test(digits)) {
+    return { number: Number(digits), country: "bj" };
+  }
+  throw new AppError(400, "INVALID_PHONE", "Saisissez un numéro de téléphone valide (8 à 10 chiffres, avec ou sans indicatif pays).");
 }
 
 export function addOneMonth(date: Date) {
@@ -41,6 +64,7 @@ export function subscriptionView(subscription: NonNullable<Awaited<ReturnType<ty
   const paidUntil = subscription.currentPeriodEndsAt;
   const status = paidUntil && paidUntil > now ? "active" : subscription.trialEndsAt > now ? "trial" : "expired";
   const accessUntil = status === "active" ? paidUntil! : status === "trial" ? subscription.trialEndsAt : null;
+  const daysRemaining = accessUntil ? Math.max(0, Math.ceil((accessUntil.getTime() - now.getTime()) / (1000 * 60 * 60 * 24))) : 0;
   return {
     status,
     access: status !== "expired",
@@ -48,6 +72,7 @@ export function subscriptionView(subscription: NonNullable<Awaited<ReturnType<ty
     trialEndsAt: subscription.trialEndsAt,
     currentPeriodEndsAt: paidUntil ?? null,
     accessUntil,
+    daysRemaining,
     monthlyPrice: MONTHLY_PRICE,
     currency: "XOF" as const,
   };
@@ -114,7 +139,7 @@ export async function createCheckout(env: Env, input: {
           firstname: firstName,
           lastname: lastName.join(" ") || firstName,
           email: input.email,
-          phone_number: { number: phoneForFedaPay(input.phone), country: "bj" },
+          phone_number: phoneForFedaPay(input.phone),
         },
         custom_metadata: { k_manage_reference: reference },
       }),
@@ -186,7 +211,7 @@ export async function verifyWebhookAndApply(env: Env, payload: unknown): Promise
 export async function subscriptionForBusiness(businessId: Types.ObjectId) {
   const business = await Business.findById(businessId);
   if (!business) throw notFound("Commerce introuvable");
-  return ensureSubscription(business._id, new Date());
+  return ensureSubscription(business._id, business.createdAt);
 }
 
 export async function accountForPayment(userId: Types.ObjectId) {

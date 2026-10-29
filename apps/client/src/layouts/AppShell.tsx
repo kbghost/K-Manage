@@ -149,6 +149,12 @@ export default function AppShell() {
   const { user, business, businesses, activeId, selectBusiness, signOut, can } = useAuth(); const theme = useTheme(); const nav = useNavigate(); const loc = useLocation(); const outlet = useOutlet();
   const [drawer, setDrawer] = useState(false); const [menu, setMenu] = useState(false); const [palette, setPalette] = useState(false); const [help, setHelp] = useState(false);
   const [collapsed, setCollapsed] = useState(() => localStorage.getItem("km_nav_collapsed") === "1");
+  const billingQ = useQuery({
+    queryKey: ["billing", activeId],
+    enabled: !!activeId,
+    queryFn: async () => (await api<{ status: string; accessUntil: string | null; daysRemaining?: number }>("GET", "/billing/current")).data,
+    staleTime: 60_000,
+  });
   useEffect(() => { setDrawer(false); }, [loc.pathname, loc.search]);
   useGlobalShortcuts({ onPalette: () => setPalette(true), onHelp: () => setHelp(true), go: (to) => nav(to), toggleTheme: theme.toggle, can, disabled: palette });
   const toggleCollapse = () => setCollapsed((c) => { localStorage.setItem("km_nav_collapsed", c ? "0" : "1"); return !c; });
@@ -204,6 +210,28 @@ export default function AppShell() {
             </div>
           </div>
         </header>
+        {billingQ.data?.status === "trial" && (
+          <div className="no-print bg-gradient-to-r from-emerald-900 via-emerald-800 to-teal-900 px-3 sm:px-6 py-2 text-xs font-medium text-emerald-100 flex flex-wrap items-center justify-between gap-2 border-b border-emerald-950/40">
+            <div className="flex items-center gap-2">
+              <span className="rounded-full bg-emerald-400/20 px-2 py-0.5 text-[10px] font-bold text-emerald-300 uppercase">
+                Essai gratuit
+              </span>
+              <span>
+                Il vous reste{" "}
+                <strong className="text-white font-bold">
+                  {billingQ.data.daysRemaining ?? "quelques"} jour(s)
+                </strong>{" "}
+                d’essai sans engagement.
+              </span>
+            </div>
+            <NavLink
+              to="/billing"
+              className="rounded-lg bg-emerald-700 hover:bg-emerald-600 px-3 py-1 text-[11px] font-bold text-white shadow-sm transition"
+            >
+              Activer mon abonnement (7 000 F/mois) →
+            </NavLink>
+          </div>
+        )}
         <main className={cx("min-h-0 flex-1 overflow-x-hidden overflow-y-auto bg-grain p-3 sm:p-6", !onPos && "pb-36 lg:pb-8")}>
           <div className="mx-auto max-w-7xl">
             <AnimatePresence mode="wait" initial={false}>

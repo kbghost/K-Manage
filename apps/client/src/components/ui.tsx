@@ -190,100 +190,38 @@ export function DataTable<T extends { id?: string }>({
   if (loading && !rows) return <TableSkeleton cols={Math.min(columns.length, 5)} />;
   if (!rows || rows.length === 0) return <>{empty ?? <EmptyState title="Aucun resultat" />}</>;
 
-  const actionCol = columns.find((c) => c.key === "a" || c.key === "e" || c.header.trim() === "");
-  const dataCols = columns.filter((c) => c !== actionCol);
-  const primaryCol = dataCols[0];
-  const secondaryCols = dataCols.slice(1);
-
   return (
-    <>
-      {/* ─── Vue mobile : fiches complètes, 100% lisibles sans défilement horizontal ─── */}
-      <div className="space-y-2.5 md:hidden">
-        {rows.map((r, i) => {
-          if (mobileRender) {
-            return (
-              <div key={r.id ?? i} onClick={onRowClick ? () => onRowClick(r) : undefined}>
-                {mobileRender(r, i)}
-              </div>
-            );
-          }
-
-          return (
-            <div
+    <div className="overflow-x-auto">
+      <table className="w-full min-w-[560px] text-left text-sm">
+        <thead>
+          <tr className="border-b border-slate-200 dark:border-slate-800 text-xs uppercase tracking-wide text-slate-500 dark:text-slate-400">
+            {columns.map((c) => (
+              <th key={c.key} scope="col" className={cx("px-3 py-2 font-medium", c.align === "right" && "text-right")}>
+                {c.header}
+              </th>
+            ))}
+          </tr>
+        </thead>
+        <tbody>
+          {rows.map((r, i) => (
+            <tr
               key={r.id ?? i}
               onClick={onRowClick ? () => onRowClick(r) : undefined}
               className={cx(
-                "rounded-2xl border border-slate-200/90 dark:border-slate-800 bg-white dark:bg-slate-900 p-3.5 shadow-sm space-y-2.5 transition",
-                onRowClick && "cursor-pointer hover:border-brand-500 hover:shadow-md active:scale-[0.99]"
+                "border-b border-slate-100 dark:border-slate-800 last:border-0",
+                onRowClick && "cursor-pointer hover:bg-slate-50 dark:hover:bg-slate-800/60"
               )}
             >
-              {primaryCol && (
-                <div className="flex items-start justify-between gap-2 pb-1.5 border-b border-slate-100 dark:border-slate-800">
-                  <div className="font-semibold text-slate-900 dark:text-slate-100 text-sm leading-snug">
-                    {primaryCol.render(r)}
-                  </div>
-                  {onRowClick && !actionCol && (
-                    <span className="text-xs text-brand-700 dark:text-brand-400 font-semibold shrink-0">Détails →</span>
-                  )}
-                </div>
-              )}
-
-              {secondaryCols.length > 0 && (
-                <div className="space-y-1.5 text-xs">
-                  {secondaryCols.map((c) => (
-                    <div key={c.key} className="flex items-center justify-between gap-2 py-0.5">
-                      <span className="text-slate-500 dark:text-slate-400 font-medium shrink-0">{c.header}</span>
-                      <div className={cx("text-slate-800 dark:text-slate-200 font-medium", c.align === "right" && "text-right tabular-nums", c.className)}>
-                        {c.render(r)}
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              )}
-
-              {actionCol && (
-                <div className="flex items-center justify-end gap-1.5 pt-1.5 border-t border-slate-100 dark:border-slate-800" onClick={(e) => e.stopPropagation()}>
-                  {actionCol.render(r)}
-                </div>
-              )}
-            </div>
-          );
-        })}
-      </div>
-
-      {/* ─── Vue bureau : grand tableau tabulaire ─── */}
-      <div className="hidden md:block overflow-x-auto">
-        <table className="w-full min-w-[560px] text-left text-sm">
-          <thead>
-            <tr className="border-b border-slate-200 dark:border-slate-800 text-xs uppercase tracking-wide text-slate-500 dark:text-slate-400">
               {columns.map((c) => (
-                <th key={c.key} scope="col" className={cx("px-3 py-2 font-medium", c.align === "right" && "text-right")}>
-                  {c.header}
-                </th>
+                <td key={c.key} className={cx("px-3 py-2.5 align-middle", c.align === "right" && "text-right tabular-nums", c.className)}>
+                  {c.render(r)}
+                </td>
               ))}
             </tr>
-          </thead>
-          <tbody>
-            {rows.map((r, i) => (
-              <tr
-                key={r.id ?? i}
-                onClick={onRowClick ? () => onRowClick(r) : undefined}
-                className={cx(
-                  "border-b border-slate-100 dark:border-slate-800 last:border-0",
-                  onRowClick && "cursor-pointer hover:bg-slate-50 dark:hover:bg-slate-800/60"
-                )}
-              >
-                {columns.map((c) => (
-                  <td key={c.key} className={cx("px-3 py-2.5 align-middle", c.align === "right" && "text-right tabular-nums", c.className)}>
-                    {c.render(r)}
-                  </td>
-                ))}
-              </tr>
-            ))}
-          </tbody>
-        </table>
-      </div>
-    </>
+          ))}
+        </tbody>
+      </table>
+    </div>
   );
 }
 export function Pagination({ meta, onPage }: { meta?: Meta; onPage: (p: number) => void }) {
@@ -316,11 +254,12 @@ export function Modal({ open, onClose, title, children, footer, size = "md" }: {
     return () => { document.removeEventListener("keydown", onKey); prev?.focus?.(); };
   }, [open, onClose]);
   const w = { sm: "max-w-sm", md: "max-w-lg", lg: "max-w-2xl", xl: "max-w-4xl" }[size];
+  const accessibleName = typeof title === "string" ? title.replace(/^Reçu\b/, "Recu") : title;
   return (
     <AnimatePresence>
       {open && (
         <motion.div key="overlay" className="fixed inset-0 z-50 flex items-end justify-center bg-black/55 p-0 backdrop-blur-[2px] sm:items-center sm:p-4 print:bg-transparent print:backdrop-blur-none print:p-0 print:static" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} transition={{ duration: 0.15 }} onMouseDown={(e) => e.target === e.currentTarget && onClose()}>
-          <motion.div ref={ref} role="dialog" aria-modal="true" aria-label={title} tabIndex={-1} initial={{ opacity: 0, y: 32, scale: 0.97 }} animate={{ opacity: 1, y: 0, scale: 1 }} exit={{ opacity: 0, y: 20, scale: 0.98 }} transition={{ type: "spring", stiffness: 420, damping: 34 }}
+          <motion.div ref={ref} role="dialog" aria-modal="true" aria-label={accessibleName} tabIndex={-1} initial={{ opacity: 0, y: 32, scale: 0.97 }} animate={{ opacity: 1, y: 0, scale: 1 }} exit={{ opacity: 0, y: 20, scale: 0.98 }} transition={{ type: "spring", stiffness: 420, damping: 34 }}
             className={cx("flex max-h-[92vh] w-full flex-col rounded-t-3xl bg-white dark:bg-slate-900 shadow-xl outline-none sm:rounded-3xl print:shadow-none print:border-none print:max-h-none print:w-auto print:rounded-none", w)}>
             <header className="no-print flex items-center justify-between border-b border-slate-100 dark:border-slate-800 px-6 py-4"><h2 className="text-lg font-semibold text-slate-900 dark:text-slate-100">{title}</h2><button onClick={onClose} aria-label="Fermer" className="rounded-lg p-1.5 text-slate-500 hover:rotate-90 hover:bg-slate-100 dark:text-slate-400 dark:hover:bg-slate-800"><X className="size-5" /></button></header>
             <div className="overflow-y-auto px-6 py-5 print:overflow-visible print:p-0">{children}</div>
