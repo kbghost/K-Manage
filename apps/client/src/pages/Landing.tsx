@@ -41,6 +41,8 @@ interface SlideItem {
   value: string;
   secondary: string;
   tag: string;
+  image: string;
+  imageAlt: string;
   component: () => ReactNode;
 }
 
@@ -55,6 +57,8 @@ const SLIDES: SlideItem[] = [
     value: "142 500 FCFA",
     secondary: "38 tickets · 0 erreur de caisse",
     tag: "Caisse en direct",
+    image: "https://images.unsplash.com/photo-1556742049-0a67c5574f73?auto=format&fit=crop&w=900&q=80",
+    imageAlt: "Encaissement en boutique et caisse tactile moderne",
     component: PosMockup,
   },
   {
@@ -67,6 +71,8 @@ const SLIDES: SlideItem[] = [
     value: "320 produits",
     secondary: "Valeur : 2 450 000 FCFA · 2 alertes",
     tag: "Inventaire temps réel",
+    image: "https://images.unsplash.com/photo-1578916171728-46686eac8d58?auto=format&fit=crop&w=900&q=80",
+    imageAlt: "Rayons et stock de marchandises organisés en boutique",
     component: StockMockup,
   },
   {
@@ -79,6 +85,8 @@ const SLIDES: SlideItem[] = [
     value: "85% plus rapide",
     secondary: "Reste dû maîtrisé : 48 500 FCFA",
     tag: "Recouvrement facile",
+    image: "https://images.unsplash.com/photo-1580828343064-fde4fc206bc6?auto=format&fit=crop&w=900&q=80",
+    imageAlt: "Relation client de confiance et suivi des paiements au comptoir",
     component: CustomerMockup,
   },
   {
@@ -91,6 +99,8 @@ const SLIDES: SlideItem[] = [
     value: "385 000 FCFA",
     secondary: "Ce mois · Marge nette de 24.5%",
     tag: "Rentabilité transparente",
+    image: "https://images.unsplash.com/photo-1460925895917-afdab827c52f?auto=format&fit=crop&w=900&q=80",
+    imageAlt: "Tableau de bord financier, calcul de la marge nette et rentabilité",
     component: ReportsMockup,
   },
 ];
@@ -502,8 +512,27 @@ export default function Landing({ defaultSection }: { defaultSection?: "details"
                   </div>
                 </div>
 
+                {/* Photo d'illustration réelle du cas d'usage */}
+                <div className="mt-3.5 relative h-36 sm:h-44 w-full overflow-hidden rounded-2xl border border-slate-100 shadow-inner group">
+                  <img
+                    src={slide.image}
+                    alt={slide.imageAlt}
+                    className="h-full w-full object-cover transition-transform duration-700 group-hover:scale-105"
+                    loading="lazy"
+                  />
+                  <div className="absolute inset-0 bg-gradient-to-t from-slate-950/85 via-slate-950/20 to-transparent flex items-end justify-between p-3.5">
+                    <div>
+                      <span className="text-[10px] font-bold uppercase tracking-wider text-emerald-300">Scénario réel</span>
+                      <p className="text-xs font-semibold text-white drop-shadow-sm">{slide.imageAlt}</p>
+                    </div>
+                    <span className="rounded-lg bg-emerald-700/90 backdrop-blur-md px-2.5 py-1 text-[10px] font-bold text-white shadow-sm">
+                      {slide.badge}
+                    </span>
+                  </div>
+                </div>
+
                 {/* Métrique principale en vedette */}
-                <div className="mt-4 flex flex-wrap items-baseline justify-between gap-2 rounded-2xl bg-slate-50 p-4">
+                <div className="mt-3.5 flex flex-wrap items-baseline justify-between gap-2 rounded-2xl bg-slate-50 p-4">
                   <div>
                     <p className="text-xs font-medium text-slate-500">{slide.metric}</p>
                     <p className="text-2xl font-black text-slate-900 sm:text-3xl tracking-tight">{slide.value}</p>
@@ -528,19 +557,29 @@ export default function Landing({ defaultSection }: { defaultSection?: "details"
                   </AnimatePresence>
                 </div>
 
-                {/* Sélecteur d'onglets de diapositive */}
-                <div className="mt-5 grid grid-cols-4 gap-1.5 border-t border-slate-100 pt-3">
+                {/* Sélecteur d'onglets de diapositive avec vignettes */}
+                <div className="mt-5 grid grid-cols-4 gap-2 border-t border-slate-100 pt-3">
                   {SLIDES.map((item, i) => (
                     <button
                       key={item.id}
                       onClick={() => setActive(i)}
-                      className={`rounded-lg py-1.5 px-2 text-center text-[11px] font-semibold transition ${
+                      className={`group flex flex-col items-center gap-1 rounded-xl p-1.5 transition text-center ${
                         i === active
-                          ? "bg-emerald-700 text-white shadow-sm"
-                          : "text-slate-500 hover:bg-slate-100"
+                          ? "bg-emerald-50 text-emerald-900 ring-2 ring-emerald-600 shadow-sm"
+                          : "text-slate-500 hover:bg-slate-50"
                       }`}
                     >
-                      {item.badge.split(" ")[0]}
+                      <div className="h-9 w-full overflow-hidden rounded-lg bg-slate-100">
+                        <img
+                          src={item.image}
+                          alt={item.badge}
+                          className="h-full w-full object-cover opacity-80 group-hover:opacity-100 transition"
+                          loading="lazy"
+                        />
+                      </div>
+                      <span className="text-[10px] font-bold truncate max-w-full">
+                        {item.badge.split(" ")[0]}
+                      </span>
                     </button>
                   ))}
                 </div>
@@ -600,52 +639,68 @@ export default function Landing({ defaultSection }: { defaultSection?: "details"
                   title: "Point de Vente & Caisse Tactile",
                   desc: "Vente express au comptoir avec recherche par nom, code-barres ou raccourcis. Calcul automatique de la monnaie à rendre et impression instantanée de tickets.",
                   badge: "Caisse",
+                  image: "https://images.unsplash.com/photo-1556740749-887f6717d7e4?auto=format&fit=crop&w=600&q=80",
                 },
                 {
                   icon: Package,
                   title: "Gestion des Stocks & Alertes Ruptures",
                   desc: "Inventaire en temps réel avec alerte automatique dès qu'un produit descend sous le seuil critique. Ne ratez plus aucune vente faute de marchandise.",
                   badge: "Stock",
+                  image: "https://images.unsplash.com/photo-1583258292688-d0213dc5a3a8?auto=format&fit=crop&w=600&q=80",
                 },
                 {
                   icon: Users,
                   title: "Clients, Crédits & Dettes",
                   desc: "Fini les carnets perdus ou raturés. Enregistrez les acomptes, visualisez les soldes dus et retrouvez l’historique d’achats de chaque client en un clin d’œil.",
                   badge: "Créances",
+                  image: "https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?auto=format&fit=crop&w=600&q=80",
                 },
                 {
                   icon: Wallet,
                   title: "Suivi des Dépenses & Sorties de Caisse",
                   desc: "Notez les frais d’électricité, loyer, transport ou salaires directement dans la plateforme pour avoir un bilan net exact et sans surprise.",
                   badge: "Trésorerie",
+                  image: "https://images.unsplash.com/photo-1554224155-8d04cb21cd6c?auto=format&fit=crop&w=600&q=80",
                 },
                 {
                   icon: BarChart3,
                   title: "Vrai Bénéfice Net & Statistiques",
                   desc: "K-Manage soustrait automatiquement le prix d’achat et vos dépenses pour vous donner votre bénéfice net réel, jour par jour et mois par mois.",
                   badge: "Rentabilité",
+                  image: "https://images.unsplash.com/photo-1551836022-d5d88e9218df?auto=format&fit=crop&w=600&q=80",
                 },
                 {
                   icon: Printer,
                   title: "Tickets Thermiques & Factures A4",
                   desc: "Compatible avec les imprimantes thermiques de caisse (58mm et 80mm USB ou Bluetooth) ainsi que les formats A4 pour les livraisons et grossistes.",
                   badge: "Impression",
+                  image: "https://images.unsplash.com/photo-1607344645866-009c320c5ab8?auto=format&fit=crop&w=600&q=80",
                 },
               ].map((f) => (
                 <div
                   key={f.title}
-                  className="group relative rounded-3xl border border-slate-200/90 bg-white p-7 shadow-sm transition hover:-translate-y-1 hover:border-emerald-300 hover:shadow-xl"
+                  className="group relative flex flex-col justify-between overflow-hidden rounded-3xl border border-slate-200/90 bg-white p-6 shadow-sm transition hover:-translate-y-1 hover:border-emerald-300 hover:shadow-xl"
                 >
-                  <div className="flex items-center justify-between">
-                    <span className="grid size-12 place-items-center rounded-2xl bg-emerald-50 text-emerald-700 transition group-hover:bg-emerald-700 group-hover:text-white">
-                      <f.icon className="size-6" />
-                    </span>
-                    <span className="rounded-full bg-slate-100 px-3 py-1 text-xs font-semibold text-slate-600">
-                      {f.badge}
-                    </span>
+                  <div>
+                    <div className="relative h-44 w-full overflow-hidden rounded-2xl bg-slate-100">
+                      <img
+                        src={f.image}
+                        alt={f.title}
+                        className="h-full w-full object-cover transition duration-500 group-hover:scale-105"
+                        loading="lazy"
+                      />
+                      <div className="absolute inset-0 bg-gradient-to-t from-slate-950/75 via-transparent to-transparent flex items-end justify-between p-3.5">
+                        <span className="grid size-9 place-items-center rounded-xl bg-white/95 text-emerald-800 shadow-md">
+                          <f.icon className="size-5" />
+                        </span>
+                        <span className="rounded-full bg-emerald-600/95 backdrop-blur-md px-2.5 py-0.5 text-[11px] font-bold text-white shadow-sm">
+                          {f.badge}
+                        </span>
+                      </div>
+                    </div>
+                    <h3 className="mt-5 text-lg font-bold text-slate-900">{f.title}</h3>
+                    <p className="mt-2 text-sm leading-6 text-slate-600">{f.desc}</p>
                   </div>
-                  <h3 className="mt-6 text-lg font-bold text-slate-900">{f.title}</h3>
-                  <p className="mt-2 text-sm leading-6 text-slate-600">{f.desc}</p>
                 </div>
               ))}
             </div>
@@ -782,17 +837,25 @@ export default function Landing({ defaultSection }: { defaultSection?: "details"
 
               {/* Carte visuelle des moyens FedaPay */}
               <div className="rounded-3xl border border-emerald-100 bg-gradient-to-br from-emerald-50/70 via-white to-teal-50/50 p-7 sm:p-9 shadow-xl">
-                <div className="flex items-center justify-between border-b border-emerald-100 pb-4">
-                  <div>
-                    <p className="font-bold text-slate-900">Passerelle FedaPay intégrée</p>
-                    <p className="text-xs text-slate-500">Conforme aux standards bancaires BCEAO</p>
+                <div className="relative h-44 w-full overflow-hidden rounded-2xl mb-6 shadow-sm border border-emerald-100/80">
+                  <img
+                    src="https://images.unsplash.com/photo-1559526324-4b87b5e36e44?auto=format&fit=crop&w=800&q=80"
+                    alt="Paiement Mobile Money et carte bancaire FedaPay"
+                    className="h-full w-full object-cover"
+                    loading="lazy"
+                  />
+                  <div className="absolute inset-0 bg-gradient-to-t from-slate-950/85 via-slate-950/25 to-transparent flex items-end justify-between p-4">
+                    <div>
+                      <p className="font-bold text-white text-sm">Passerelle FedaPay intégrée</p>
+                      <p className="text-xs text-emerald-200">Règlement instantané en Francs CFA (XOF)</p>
+                    </div>
+                    <span className="rounded-full bg-emerald-500 px-3 py-1 text-xs font-bold text-slate-950 shadow-sm">
+                      100% Sécurisé
+                    </span>
                   </div>
-                  <span className="rounded-full bg-emerald-600 px-3 py-1 text-xs font-bold text-white shadow-sm">
-                    100% Sécurisé
-                  </span>
                 </div>
 
-                <div className="mt-6 space-y-3">
+                <div className="space-y-3">
                   <div className="flex items-center justify-between rounded-2xl bg-white p-3.5 border border-slate-200 shadow-sm">
                     <div className="flex items-center gap-3">
                       <span className="grid size-9 place-items-center rounded-xl bg-amber-500 text-slate-950 font-black text-xs">
@@ -954,29 +1017,32 @@ export default function Landing({ defaultSection }: { defaultSection?: "details"
                   name: "Bernadette K.",
                   role: "Prêt-à-porter féminin",
                   city: "Cotonou (Ganhi)",
-                  initials: "BK",
+                  avatar: "https://images.unsplash.com/photo-1573497019940-1c28c88b4f3e?auto=format&fit=crop&w=200&h=200&q=80",
                 },
                 {
                   quote: "L'alerte de stock m'a sauvé plusieurs fois pendant les fêtes. Dès qu'un carton de lait baisse sous 5 unités, je suis prévenu et je commande chez mon grossiste.",
                   name: "Moussa D.",
                   role: "Supérette & Alimentation générale",
                   city: "Lomé (Adidogomé)",
-                  initials: "MD",
+                  avatar: "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?auto=format&fit=crop&w=200&h=200&q=80",
                 },
                 {
                   quote: "Le paiement FedaPay par Moov Money est ultra pratique. Je paie mes 7000 F en 20 secondes sur mon téléphone et j'ai directement mon reçu.",
                   name: "Yves A.",
                   role: "Quincaillerie & Matériaux",
                   city: "Abidjan (Yopougon)",
-                  initials: "YA",
+                  avatar: "https://images.unsplash.com/photo-1500648767791-00dcc994a43e?auto=format&fit=crop&w=200&h=200&q=80",
                 },
               ].map((t) => (
                 <div key={t.name} className="rounded-3xl border border-slate-200 bg-white p-7 shadow-sm flex flex-col justify-between">
                   <p className="text-sm leading-6 text-slate-700 italic">« {t.quote} »</p>
                   <div className="mt-6 flex items-center gap-3 pt-4 border-t border-slate-100">
-                    <span className="grid size-10 place-items-center rounded-full bg-emerald-100 text-emerald-800 font-bold text-sm">
-                      {t.initials}
-                    </span>
+                    <img
+                      src={t.avatar}
+                      alt={t.name}
+                      className="size-11 rounded-full object-cover ring-2 ring-emerald-500/30 shadow-sm"
+                      loading="lazy"
+                    />
                     <div>
                       <p className="text-sm font-bold text-slate-900">{t.name}</p>
                       <p className="text-xs text-slate-500">{t.role} · {t.city}</p>
@@ -1133,6 +1199,24 @@ export default function Landing({ defaultSection }: { defaultSection?: "details"
         }
       >
         <div className="space-y-6 text-sm text-slate-700">
+          <div className="relative h-36 w-full overflow-hidden rounded-2xl shadow-sm">
+            <img
+              src="https://images.unsplash.com/photo-1526738549149-8e07eca6c147?auto=format&fit=crop&w=1200&q=80"
+              alt="Boutique et commerce de détail moderne"
+              className="h-full w-full object-cover"
+              loading="lazy"
+            />
+            <div className="absolute inset-0 bg-gradient-to-r from-emerald-950/95 via-emerald-950/70 to-transparent flex items-center p-5">
+              <div>
+                <span className="rounded-md bg-emerald-500/20 px-2 py-0.5 text-[10px] font-bold text-emerald-300 uppercase tracking-wide">
+                  Solution Complète Clé en Main
+                </span>
+                <h3 className="mt-1 text-lg font-bold text-white">Tous les modules inclus dans votre essai</h3>
+                <p className="text-xs text-emerald-100">Aucun bridage, aucune fonctionnalité cachée.</p>
+              </div>
+            </div>
+          </div>
+
           <div className="rounded-2xl bg-emerald-50 p-4 border border-emerald-100 flex items-start gap-3">
             <Sparkle className="size-5 text-emerald-700 shrink-0 mt-0.5" />
             <div>
