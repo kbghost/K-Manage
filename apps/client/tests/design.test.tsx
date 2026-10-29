@@ -16,7 +16,11 @@ describe("identite visuelle", () => {
   it("utilise la police Poppins (auto-hebergee) et des tailles de lecture confortables", () => {
     const css = readFileSync("src/index.css", "utf8"); const main = readFileSync("src/main.tsx", "utf8");
     expect(css).toContain('"Poppins"'); expect(main).toContain("@fontsource/poppins/latin-400.css"); expect(main).toContain("@fontsource/poppins/latin-600.css");
-    expect(css).toMatch(/--text-sm:\s*0\.9375rem/); expect(css).toMatch(/html\s*\{\s*font-size:\s*16px/);
+    expect(css).toMatch(/--text-sm:\s*0\.9rem/); expect(css).toMatch(/html\s*\{\s*font-size:\s*15px/);
+    expect(css).toContain(".dark .text-slate-950 { color: #f8fafc; }");
+    expect(css).toContain(".dark .text-emerald-900 { color: #a7f3d0; }");
+    expect(css).toContain(".dark .text-amber-900 { color: #fde68a; }");
+    expect(css).toContain(".dark .text-red-900 { color: #fecaca; }");
   });
   it("les icones sont bicolores (Phosphor Duotone : trait + ton secondaire)", async () => {
     mockApi({ ...loggedIn, ...prodRoutes }); renderApp(<App />, "/products"); await screen.findByRole("heading", { name: "Produits" });

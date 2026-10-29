@@ -22,6 +22,7 @@ export function billingRouter(env: Env) {
         businessName: business.name,
         isOwner,
         paymentConfigured: !!env.FEDAPAY_SECRET_KEY,
+        remindersConfigured: !!env.SMTP_URL,
         payments: payments.map((payment) => ({ reference: payment.reference, amount: payment.amount, currency: payment.currency, paidAt: payment.paidAt })),
       },
     });
@@ -29,6 +30,7 @@ export function billingRouter(env: Env) {
 
   router.post("/checkout", requireAuth, ah(async (req, res) => {
     const { phone } = z.object({ phone: phoneSchema }).parse(req.body);
+    const idempotencyKey = z.string().trim().min(8).max(128).parse(req.get("idempotency-key"));
     const { business } = await getOwnedBusiness(req.auth!.userId, req.get("x-business-id") ?? "", true);
     const user = await accountForPayment(req.auth!.userId);
     const subscription = await ensureSubscription(business._id, business.createdAt);
@@ -40,6 +42,7 @@ export function billingRouter(env: Env) {
       email: user.email,
       phone,
       clientOrigin: env.CLIENT_ORIGIN,
+      idempotencyKey,
     });
     res.status(201).json({ data: checkout });
   }));
@@ -52,10 +55,13 @@ export function billingRouter(env: Env) {
   router.post("/refresh", requireAuth, ah(async (req, res) => {
     const { business } = await getOwnedBusiness(req.auth!.userId, req.get("x-business-id") ?? "");
     if (!env.FEDAPAY_SECRET_KEY) throw new AppError(503, "PAYMENT_NOT_CONFIGURED", "Le paiement en ligne n'est pas encore configuré.");
-    const payment = await BillingPayment.findOne({ businessId: business._id, status: "pending" }).sort({ createdAt: -1 });
+    const { reference } = z.object({ reference: z.string().trim().min(8).max(100).optional() }).parse(req.body);
+    const payment = reference
+      ? await BillingPayment.findOne({ businessId: business._id, reference })
+      : await BillingPayment.findOne({ businessId: business._id, status: "pending" }).sort({ createdAt: -1 });
     const paymentStatus = payment?.providerTransactionId
       ? await verifyWebhookAndApply(env, { entity: { id: payment.providerTransactionId } })
-      : "unknown";
+      : payment?.status ?? "unknown";
     const subscription = await subscriptionForBusiness(business._id);
     res.json({ data: { ...subscriptionView(subscription), paymentStatus } });
   }));

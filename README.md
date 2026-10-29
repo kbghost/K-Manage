@@ -18,6 +18,8 @@ Chaque boutique dispose d'un mois d'essai gratuit à sa création, puis l'accès
 
 Pour activer les paiements, configurez `FEDAPAY_MODE=sandbox` et `FEDAPAY_SECRET_KEY` dans l'environnement de l'API, puis configurez le webhook FedaPay HTTPS vers `/api/v1/billing/webhook`. Le serveur vérifie la transaction auprès de l'API FedaPay avant d'enregistrer un paiement et de prolonger l'accès. Après validation en sandbox, passez `FEDAPAY_MODE` à `live` et utilisez uniquement la clé secrète live dans l'environnement de production. Tant que la clé n'est pas configurée, l'interface d'abonnement reste visible mais les paiements ne sont pas disponibles.
 
+Un règlement validé pendant l'essai conserve le temps d'essai restant et le mois payé commence à son terme. Un renouvellement avant échéance s'ajoute à la période déjà réglée. Pour envoyer des rappels d'échéance environ 7 jours et 1 jour à l'avance, configurez également `SMTP_URL` et `MAIL_FROM` ; sans configuration SMTP, les rappels restent désactivés.
+
 ## Prérequis (Windows 10/11 + VS Code)
 1. **Node.js LTS ≥ 22.9** — https://nodejs.org (vérifier : `node -v`).
 2. **MongoDB Community Server** (installation directe, **sans Docker**) — https://www.mongodb.com/try/download/community  

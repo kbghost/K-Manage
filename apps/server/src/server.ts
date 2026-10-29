@@ -3,6 +3,7 @@ import { loadEnv } from "./config/env.js";
 import { createApp } from "./app.js";
 import { ensureTtlIndexes } from "./modules/auth/models.js";
 import { ensureProductIndexes } from "./modules/catalog/models.js";
+import { startBillingReminderJob } from "./modules/billing/service.js";
 
 const env = loadEnv();
 await mongoose.connect(env.MONGODB_URI);
@@ -16,4 +17,5 @@ for (const [name, create] of [["TTL sessions", ensureTtlIndexes], ["unicite des 
   }
 }
 const app = createApp(env);
+startBillingReminderJob(env);
 app.listen(env.PORT, () => console.log(`API K-Manage sur http://localhost:${env.PORT}/api/v1`));

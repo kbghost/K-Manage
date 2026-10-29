@@ -1,19 +1,15 @@
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useSearchParams } from "react-router-dom";
 import {
-  Banknote,
   CalendarCheck,
   CheckCircle2,
   CreditCard,
-  History,
   Printer,
   Receipt,
   ShieldCheck,
-  Sparkle,
-  Store,
 } from "../components/icons";
-import { api } from "../lib/api";
+import { api, ApiError, newKey } from "../lib/api";
 import { useAuth } from "../lib/auth";
 import { errMsg, Button, Card, Input, Modal, PageHeader, Spinner } from "../components/ui";
 
@@ -37,6 +33,7 @@ interface BillingInfo {
   businessName: string;
   isOwner: boolean;
   paymentConfigured: boolean;
+  remindersConfigured?: boolean;
   payments: BillingPaymentItem[];
 }
 
@@ -63,6 +60,7 @@ export default function Billing() {
   const [phone, setPhone] = useState("");
   const [notice, setNotice] = useState("");
   const [selectedReceipt, setSelectedReceipt] = useState<BillingPaymentItem | null>(null);
+  const checkoutIdempotencyKey = useRef(newKey());
 
   const billing = useQuery({
     queryKey: ["billing", activeId],
@@ -76,7 +74,7 @@ export default function Billing() {
         await api<BillingInfo & { paymentStatus: "paid" | "pending" | "failed" | "unknown" }>(
           "POST",
           "/billing/refresh",
-          {},
+          { reference: params.get("payment") ?? undefined },
         )
       ).data,
     onSuccess: async (result) => {
@@ -92,13 +90,15 @@ export default function Billing() {
                 ? "Votre abonnement est actif."
                 : "Aucun paiement confirmé pour le moment. Finalisez le paiement sur FedaPay puis réessayez.",
       );
-      setParams(
-        (current) => {
-          current.delete("payment");
-          return current;
-        },
-        { replace: true },
-      );
+      if (result.paymentStatus !== "pending") {
+        setParams(
+          (current) => {
+            current.delete("payment");
+            return current;
+          },
+          { replace: true },
+        );
+      }
     },
   });
 
@@ -109,9 +109,25 @@ export default function Billing() {
   }, [params, activeId]);
 
   const checkout = useMutation({
-    mutationFn: async () => (await api<{ paymentUrl: string }>("POST", "/billing/checkout", { phone })).data,
+    mutationFn: async () =>
+      (
+        await api<{ paymentUrl: string }>(
+          "POST",
+          "/billing/checkout",
+          { phone },
+          { idempotencyKey: checkoutIdempotencyKey.current },
+        )
+      ).data,
     onSuccess: ({ paymentUrl }) => {
       window.location.assign(paymentUrl);
+    },
+    onError: (error) => {
+      if (
+        error instanceof ApiError &&
+        ["PAYMENT_CHECKOUT_FAILED", "PAYMENT_PROVIDER_ERROR", "PAYMENT_PROVIDER_UNAVAILABLE", "PAYMENT_NOT_CONFIGURED"].includes(error.code)
+      ) {
+        checkoutIdempotencyKey.current = newKey();
+      }
     },
   });
 
@@ -319,13 +335,13 @@ export default function Billing() {
             <>
               <p className="text-sm leading-6 text-slate-600">
                 Réglez <b>{money(info.monthlyPrice)}</b> en toute sécurité via la page sécurisée <b>FedaPay</b>. Les
-                moyens de paiement disponibles (Mobile Money et cartes bancaires) seront affichés par FedaPay.
+                moyens disponibles (Mobile Money et cartes bancaires) dépendent du pays et des options activées sur le compte marchand.
               </p>
 
               {/* Badges des moyens disponibles */}
               <div className="mt-4 rounded-xl border border-slate-100 bg-slate-50 p-3">
                 <p className="text-[11px] font-semibold text-slate-500 uppercase tracking-wide mb-2">
-                  Moyens acceptés via FedaPay :
+                  Exemples de moyens proposés, selon le pays et la configuration du compte :
                 </p>
                 <div className="flex flex-wrap gap-1.5 text-xs font-medium text-slate-700">
                   <span className="rounded-lg bg-white px-2 py-1 shadow-sm border border-slate-200">MTN Momo</span>
@@ -399,6 +415,11 @@ export default function Billing() {
                   boutique. Aucun débit récurrent forcé.
                 </span>
               </div>
+              <p className="mt-3 text-xs leading-5 text-slate-500">
+                {info.remindersConfigured
+                  ? "Un rappel sera envoyé à l’adresse de votre compte 7 jours puis 1 jour avant l’échéance."
+                  : "Les rappels par e-mail ne sont pas activés. L’administrateur doit configurer SMTP_URL sur le serveur."}
+              </p>
 
               {(params.has("payment") || notice) && (
                 <Button
@@ -466,7 +487,7 @@ export default function Billing() {
             </div>
 
             <p className="text-center text-[11px] text-slate-400">
-              Ce document atteste de la validation de votre abonnement mensuel K-Manage pour 30 jours supplémentaires.
+              Ce document atteste du règlement d’un mois supplémentaire d’abonnement K-Manage.
             </p>
           </div>
         )}

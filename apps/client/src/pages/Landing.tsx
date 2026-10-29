@@ -1,34 +1,25 @@
-import { useEffect, useRef, useState, type ReactNode } from "react";
+import { useEffect, useState, type ReactNode } from "react";
 import { Link, useLocation } from "react-router-dom";
 import { AnimatePresence, motion } from "motion/react";
 import {
   ArrowRight,
-  Banknote,
   BarChart3,
   CheckCircle2,
   ChevronLeft,
   ChevronRight,
   ClipboardList,
   CreditCard,
-  HandCoins,
-  History,
   Package,
-  Plus,
   Printer,
   Receipt,
-  ScanLine,
   ShieldCheck,
   ShoppingCart,
   Sparkle,
   Store,
-  TrendingUp,
-  Truck,
   Users,
   Wallet,
-  Warehouse,
   Menu,
   X,
-  Help,
 } from "../components/icons";
 import { Button, Modal } from "../components/ui";
 
@@ -492,11 +483,11 @@ export default function Landing({ defaultSection }: { defaultSection?: "details"
                 <span>Logiciel de gestion commerciale n°1 en Afrique de l’Ouest</span>
               </div>
 
-              <h1 className="mt-5 text-3xl font-extrabold leading-[1.15] tracking-tight text-slate-950 sm:text-5xl lg:text-[3.6rem]">
+              <h1 className="mt-5 text-2xl font-bold leading-[1.2] tracking-tight text-slate-900 sm:text-4xl lg:text-[3.25rem]">
                 Tout votre commerce, au même endroit.
               </h1>
 
-              <p className="mt-4 text-sm leading-6 text-slate-600 sm:text-lg sm:leading-7">
+              <p className="mt-4 text-sm leading-6 text-slate-600 sm:text-base sm:leading-7">
                 Ventes de caisse, suivi des stocks, carnet de dettes clients et calcul automatique de vos vrais bénéfices.
                 Prenez le contrôle total de votre boutique sur smartphone, tablette ou ordinateur.
               </p>
@@ -710,7 +701,7 @@ export default function Landing({ defaultSection }: { defaultSection?: "details"
           <div className="mx-auto max-w-7xl">
             <div className="mx-auto max-w-2xl text-center">
               <p className="text-xs font-bold uppercase tracking-wider text-emerald-700">Tout pour réussir</p>
-              <h2 className="mt-3 text-3xl font-extrabold tracking-tight text-slate-950 sm:text-4xl">
+              <h2 className="mt-3 text-2xl font-bold tracking-tight text-slate-900 sm:text-3xl">
                 Une solution complète conçue pour votre réalité commerciale
               </h2>
               <p className="mt-4 leading-7 text-slate-600">
@@ -811,7 +802,7 @@ export default function Landing({ defaultSection }: { defaultSection?: "details"
               <span className="rounded-full bg-emerald-100 px-3 py-1 text-xs font-bold text-emerald-800 uppercase tracking-wide">
                 Simulateur de rentabilité
               </span>
-              <h2 className="mt-3 text-3xl font-extrabold text-slate-950 sm:text-4xl">
+              <h2 className="mt-3 text-2xl font-bold text-slate-900 sm:text-3xl">
                 Combien K-Manage vous fait-il économiser chaque mois ?
               </h2>
               <p className="mt-3 text-slate-600">
@@ -893,7 +884,7 @@ export default function Landing({ defaultSection }: { defaultSection?: "details"
                 <span className="rounded-full bg-emerald-100 px-3 py-1 text-xs font-bold text-emerald-800 uppercase tracking-wide">
                   Paiement sécurisé FedaPay
                 </span>
-                <h2 className="mt-3 text-3xl font-extrabold tracking-tight text-slate-950 sm:text-4xl">
+                <h2 className="mt-3 text-2xl font-bold tracking-tight text-slate-900 sm:text-3xl">
                   Réglez votre abonnement en toute liberté, par Mobile Money ou Carte
                 </h2>
                 <p className="mt-4 leading-7 text-slate-600">
@@ -996,7 +987,7 @@ export default function Landing({ defaultSection }: { defaultSection?: "details"
           <div className="mx-auto max-w-6xl">
             <div className="text-center max-w-2xl mx-auto">
               <p className="text-xs font-bold uppercase tracking-wider text-emerald-700">Tarif unique & transparent</p>
-              <h2 className="mt-3 text-3xl font-extrabold tracking-tight text-slate-950 sm:text-4xl">
+              <h2 className="mt-3 text-2xl font-bold tracking-tight text-slate-900 sm:text-3xl">
                 Commencez gratuitement. Continuez à votre rythme.
               </h2>
               <p className="mt-4 leading-7 text-slate-600">
@@ -1011,7 +1002,7 @@ export default function Landing({ defaultSection }: { defaultSection?: "details"
                 <span className="rounded-full bg-slate-100 px-3.5 py-1 text-xs font-bold text-slate-700">
                   1er Mois Offert
                 </span>
-                <h3 className="mt-4 text-2xl font-bold text-slate-950">30 jours d’essai offerts</h3>
+                <h3 className="mt-4 text-xl font-bold text-slate-900 sm:text-2xl">30 jours d’essai offerts</h3>
                 <p className="mt-2 text-sm text-slate-600 leading-6">
                   Testez toutes les fonctionnalités en conditions réelles dans votre boutique dès aujourd'hui.
                 </p>
@@ -1049,7 +1040,7 @@ export default function Landing({ defaultSection }: { defaultSection?: "details"
                   <CreditCard className="size-6 text-emerald-400" />
                 </div>
                 <p className="mt-4 text-sm text-emerald-100">Après votre mois d’essai gratuit :</p>
-                <p className="mt-1 text-5xl font-black tracking-tight text-white">
+                <p className="mt-1 text-4xl font-bold tracking-tight text-white">
                   7 000 <span className="text-lg font-semibold text-emerald-300">FCFA / mois</span>
                 </p>
                 <p className="mt-2 text-xs text-slate-300">Renouvellement manuel via FedaPay (Mobile Money & Carte).</p>
@@ -1092,7 +1083,7 @@ export default function Landing({ defaultSection }: { defaultSection?: "details"
               <span className="rounded-full bg-emerald-100 px-3 py-1 text-xs font-bold text-emerald-800 uppercase tracking-wide">
                 Retours d'expérience
               </span>
-              <h2 className="mt-3 text-3xl font-extrabold text-slate-950 sm:text-4xl">
+              <h2 className="mt-3 text-2xl font-bold text-slate-900 sm:text-3xl">
                 Ils gèrent leur boutique avec K-Manage
               </h2>
             </div>
@@ -1148,7 +1139,7 @@ export default function Landing({ defaultSection }: { defaultSection?: "details"
               <span className="rounded-full bg-emerald-100 px-3 py-1 text-xs font-bold text-emerald-800 uppercase tracking-wide">
                 Foire aux questions
               </span>
-              <h2 className="mt-3 text-3xl font-extrabold text-slate-950 sm:text-4xl">
+              <h2 className="mt-3 text-2xl font-bold text-slate-900 sm:text-3xl">
                 Questions fréquentes
               </h2>
             </div>
@@ -1207,7 +1198,7 @@ export default function Landing({ defaultSection }: { defaultSection?: "details"
           <div className="mx-auto max-w-6xl rounded-[2.5rem] bg-gradient-to-br from-emerald-800 via-emerald-700 to-teal-900 p-8 sm:p-14 text-white shadow-2xl relative overflow-hidden text-center sm:text-left">
             <div className="relative z-10 flex flex-col sm:flex-row items-center justify-between gap-8">
               <div className="max-w-xl">
-                <h2 className="text-3xl font-black sm:text-4xl tracking-tight">
+                <h2 className="text-2xl font-bold sm:text-3xl tracking-tight">
                   Prêt à transformer la gestion de votre boutique ?
                 </h2>
                 <p className="mt-3 text-base text-emerald-100 leading-relaxed">

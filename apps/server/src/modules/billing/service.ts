@@ -6,6 +6,7 @@ import { User } from "../auth/models.js";
 import { Subscription, BillingPayment } from "./models.js";
 import { AppError, forbidden, notFound } from "../../utils/errors.js";
 import type { Env } from "../../config/env.js";
+import { sendMail } from "../../utils/mailer.js";
 
 export const MONTHLY_PRICE = 7000;
 
@@ -51,6 +52,17 @@ export function addOneMonth(date: Date) {
   return result;
 }
 
+export function paidPeriodAfterPayment(
+  paidAt: Date,
+  trialEndsAt: Date,
+  currentPeriodEndsAt?: Date | null,
+) {
+  const startsAt = [paidAt, trialEndsAt, currentPeriodEndsAt]
+    .filter((date): date is Date => date instanceof Date)
+    .reduce((latest, date) => date > latest ? date : latest, paidAt);
+  return { startsAt, endsAt: addOneMonth(startsAt) };
+}
+
 export async function ensureSubscription(businessId: Types.ObjectId, createdAt: Date) {
   const trialStartedAt = new Date(createdAt);
   return Subscription.findOneAndUpdate(
@@ -62,7 +74,9 @@ export async function ensureSubscription(businessId: Types.ObjectId, createdAt: 
 
 export function subscriptionView(subscription: NonNullable<Awaited<ReturnType<typeof ensureSubscription>>>, now = new Date()) {
   const paidUntil = subscription.currentPeriodEndsAt;
-  const status = paidUntil && paidUntil > now ? "active" : subscription.trialEndsAt > now ? "trial" : "expired";
+  const paidFrom = subscription.currentPeriodStartsAt;
+  const paidPeriodActive = !!paidUntil && paidUntil > now && (!paidFrom || paidFrom <= now);
+  const status = paidPeriodActive ? "active" : subscription.trialEndsAt > now ? "trial" : "expired";
   const accessUntil = status === "active" ? paidUntil! : status === "trial" ? subscription.trialEndsAt : null;
   const daysRemaining = accessUntil ? Math.max(0, Math.ceil((accessUntil.getTime() - now.getTime()) / (1000 * 60 * 60 * 24))) : 0;
   return {
@@ -70,6 +84,7 @@ export function subscriptionView(subscription: NonNullable<Awaited<ReturnType<ty
     access: status !== "expired",
     trialStartedAt: subscription.trialStartedAt,
     trialEndsAt: subscription.trialEndsAt,
+    currentPeriodStartsAt: paidFrom ?? null,
     currentPeriodEndsAt: paidUntil ?? null,
     accessUntil,
     daysRemaining,
@@ -113,6 +128,23 @@ async function fedapayRequest(env: Env, path: string, init?: RequestInit): Promi
   return providerRecord(payload);
 }
 
+function isDuplicateKeyError(error: unknown): boolean {
+  return typeof error === "object" && error !== null && "code" in error && error.code === 11000;
+}
+
+function existingCheckout(payment: Awaited<ReturnType<typeof BillingPayment.findOne>>) {
+  if (payment?.status === "pending" && payment.checkoutUrl) {
+    return { paymentUrl: payment.checkoutUrl, reference: payment.reference };
+  }
+  if (payment?.status === "pending") {
+    throw new AppError(409, "PAYMENT_CHECKOUT_IN_PROGRESS", "La création du paiement est en cours. Réessayez dans quelques secondes.");
+  }
+  if (payment) {
+    throw new AppError(409, "PAYMENT_CHECKOUT_FAILED", "Cette tentative de paiement a échoué. Relancez une nouvelle tentative.");
+  }
+  throw new AppError(500, "PAYMENT_CHECKOUT_STATE_MISSING", "Impossible de retrouver la tentative de paiement.");
+}
+
 export async function createCheckout(env: Env, input: {
   businessId: Types.ObjectId;
   subscriptionId: Types.ObjectId;
@@ -121,11 +153,32 @@ export async function createCheckout(env: Env, input: {
   email: string;
   phone: string;
   clientOrigin: string;
+  idempotencyKey: string;
 }) {
-  const reference = `KM-${randomUUID()}`;
-  const payment = await BillingPayment.create({
-    businessId: input.businessId, subscriptionId: input.subscriptionId, reference, amount: MONTHLY_PRICE, currency: "XOF",
+  const customerPhone = phoneForFedaPay(input.phone);
+  const scopedIdempotencyKey = `${input.businessId.toString()}:${input.idempotencyKey}`;
+  const existing = await BillingPayment.findOne({
+    idempotencyKey: scopedIdempotencyKey,
   });
+  if (existing) return existingCheckout(existing);
+
+  const reference = `KM-${randomUUID()}`;
+  let payment;
+  try {
+    payment = await BillingPayment.create({
+      businessId: input.businessId,
+      subscriptionId: input.subscriptionId,
+      reference,
+      idempotencyKey: scopedIdempotencyKey,
+      amount: MONTHLY_PRICE,
+      currency: "XOF",
+    });
+  } catch (error) {
+    if (!isDuplicateKeyError(error)) throw error;
+    const replay = await BillingPayment.findOne({ idempotencyKey: scopedIdempotencyKey });
+    if (!replay) throw error;
+    return existingCheckout(replay);
+  }
   const [firstName, ...lastName] = input.fullName.trim().split(/\s+/);
   try {
     const transaction = await fedapayRequest(env, "/transactions", {
@@ -139,13 +192,15 @@ export async function createCheckout(env: Env, input: {
           firstname: firstName,
           lastname: lastName.join(" ") || firstName,
           email: input.email,
-          phone_number: phoneForFedaPay(input.phone),
+          phone_number: customerPhone,
         },
         custom_metadata: { k_manage_reference: reference },
       }),
     });
     const transactionId = transaction.id;
     if (transactionId === undefined || transactionId === null) throw new AppError(502, "PAYMENT_PROVIDER_ERROR", "FedaPay n'a pas retourné de référence de transaction.");
+    payment.providerTransactionId = String(transactionId);
+    await payment.save();
     const token = await fedapayRequest(env, `/transactions/${encodeURIComponent(String(transactionId))}/token`, { method: "POST", body: JSON.stringify({}) });
     const paymentUrl = token.url ?? token.payment_url ?? (token.token ? `https://checkout.fedapay.com/${String(token.token)}` : undefined);
     let checkoutHost = "";
@@ -155,7 +210,7 @@ export async function createCheckout(env: Env, input: {
     if (typeof paymentUrl !== "string" || !paymentUrl.startsWith("https://") || !(checkoutHost === "fedapay.com" || checkoutHost.endsWith(".fedapay.com"))) {
       throw new AppError(502, "PAYMENT_PROVIDER_ERROR", "FedaPay n'a pas retourné de lien de paiement valide.");
     }
-    payment.providerTransactionId = String(transactionId);
+    payment.checkoutUrl = paymentUrl;
     await payment.save();
     return { paymentUrl, reference };
   } catch (error) {
@@ -179,7 +234,7 @@ export async function verifyWebhookAndApply(env: Env, payload: unknown): Promise
   const currencyValue = providerTransaction.currency as Record<string, unknown> | string | undefined;
   const currency = typeof currencyValue === "string" ? currencyValue : currencyValue?.iso;
   const status = String(providerTransaction.status).toLowerCase();
-  if (status !== "approved" || Number(providerTransaction.amount) !== payment.amount || (currency !== undefined && currency !== payment.currency)) {
+  if (status !== "approved" || Number(providerTransaction.amount) !== payment.amount || currency !== payment.currency) {
     if (["declined", "canceled", "cancelled", "refunded"].includes(status)) {
       await BillingPayment.updateOne({ _id: payment._id, status: "pending" }, { $set: { status: "failed" } });
       return "failed";
@@ -188,19 +243,28 @@ export async function verifyWebhookAndApply(env: Env, payload: unknown): Promise
   }
 
   const paidAt = new Date();
-  const subscription = await Subscription.findById(payment.subscriptionId);
-  if (!subscription) throw new AppError(500, "SUBSCRIPTION_MISSING", "Abonnement associé au paiement introuvable.");
-  const nextEnd = addOneMonth(subscription.currentPeriodEndsAt && subscription.currentPeriodEndsAt > paidAt
-    ? subscription.currentPeriodEndsAt
-    : paidAt);
   await runTx(async (tx) => {
-    const marked = await tx.update(BillingPayment, { _id: payment._id, status: "pending" }, { $set: { status: "paid", paidAt } }, { status: "pending", paidAt: undefined });
+    const currentPayment = await BillingPayment.findOne({ _id: payment._id, status: "pending" }).session(tx.session ?? null);
+    if (!currentPayment) return;
+    const subscription = await Subscription.findById(currentPayment.subscriptionId).session(tx.session ?? null);
+    if (!subscription) throw new AppError(500, "SUBSCRIPTION_MISSING", "Abonnement associé au paiement introuvable.");
+
+    const paidPeriod = paidPeriodAfterPayment(paidAt, subscription.trialEndsAt, subscription.currentPeriodEndsAt);
+    const marked = await tx.update(
+      BillingPayment,
+      { _id: currentPayment._id, status: "pending" },
+      { $set: { status: "paid", paidAt } },
+      { status: "pending", paidAt: undefined },
+    );
     if (!marked) return;
     const updated = await tx.update(
       Subscription,
-      { _id: subscription._id },
-      { $set: { currentPeriodEndsAt: nextEnd } },
-      { currentPeriodEndsAt: subscription.currentPeriodEndsAt },
+      { _id: subscription._id, currentPeriodEndsAt: subscription.currentPeriodEndsAt ?? null },
+      { $set: { currentPeriodStartsAt: paidPeriod.startsAt, currentPeriodEndsAt: paidPeriod.endsAt } },
+      {
+        currentPeriodStartsAt: subscription.currentPeriodStartsAt,
+        currentPeriodEndsAt: subscription.currentPeriodEndsAt,
+      },
     );
     if (!updated) throw new AppError(500, "SUBSCRIPTION_UPDATE_FAILED", "Impossible de prolonger l'abonnement après le paiement.");
   });
@@ -218,4 +282,95 @@ export async function accountForPayment(userId: Types.ObjectId) {
   const user = await User.findById(userId);
   if (!user) throw notFound("Compte introuvable");
   return user;
+}
+
+const DAY_MS = 24 * 60 * 60 * 1000;
+
+export async function sendBillingReminders(env: Env, now = new Date()) {
+  if (!env.SMTP_URL) return;
+  const claimExpiredAt = new Date(now.getTime() - 30 * 60 * 1000);
+
+  for (const daysBefore of [7, 1]) {
+    const windowStart = new Date(now.getTime() + (daysBefore - 1) * DAY_MS);
+    const windowEnd = new Date(now.getTime() + daysBefore * DAY_MS);
+    const subscriptions = await Subscription.find({
+      $or: [
+        { trialEndsAt: { $gt: windowStart, $lte: windowEnd } },
+        { currentPeriodEndsAt: { $gt: windowStart, $lte: windowEnd } },
+      ],
+    });
+
+    for (const subscription of subscriptions) {
+      const paidUntil = subscription.currentPeriodEndsAt;
+      const paidFrom = subscription.currentPeriodStartsAt;
+      const paidActive = !!paidUntil && paidUntil > now && (!paidFrom || paidFrom <= now);
+      const deadline = paidActive ? paidUntil : subscription.trialEndsAt;
+      if (deadline <= now || deadline <= windowStart || deadline > windowEnd) continue;
+
+      const reminderKey = `${paidActive ? "subscription" : "trial"}:${deadline.toISOString()}:${daysBefore}`;
+      const claim = await Subscription.findOneAndUpdate(
+        {
+          _id: subscription._id,
+          lastBillingReminderKey: { $ne: reminderKey },
+          $or: [
+            { billingReminderClaimedAt: null },
+            { billingReminderClaimedAt: { $exists: false } },
+            { billingReminderClaimedAt: { $lt: claimExpiredAt } },
+          ],
+        },
+        { $set: { billingReminderClaimKey: reminderKey, billingReminderClaimedAt: now } },
+        { returnDocument: "after" },
+      );
+      if (!claim) continue;
+
+      try {
+        const business = await Business.findById(subscription.businessId).select("name ownerId isDemo");
+        if (!business || business.isDemo) {
+          await Subscription.updateOne(
+            { _id: subscription._id, billingReminderClaimKey: reminderKey },
+            { $set: { lastBillingReminderKey: reminderKey }, $unset: { billingReminderClaimKey: 1, billingReminderClaimedAt: 1 } },
+          );
+          continue;
+        }
+        const owner = await User.findById(business.ownerId).select("email fullName isActive");
+        if (!owner?.isActive || !owner.email) {
+          throw new Error(`Impossible de trouver le propriétaire actif de la boutique ${business._id}`);
+        }
+
+        const label = paidActive ? "votre abonnement" : "votre période d’essai";
+        const sent = await sendMail(
+          env,
+          owner.email,
+          `K-Manage : ${label} se termine dans ${daysBefore} jour${daysBefore > 1 ? "s" : ""}`,
+          `Bonjour ${owner.fullName},\n\n${label} de la boutique « ${business.name} » se termine le ${new Intl.DateTimeFormat("fr-FR", { dateStyle: "long", timeZone: "Africa/Porto-Novo" }).format(deadline)}.\n\n${paidActive ? "Renouvelez votre abonnement" : "Activez votre abonnement si vous souhaitez continuer à utiliser K-Manage après l’essai"} depuis la page Abonnement : ${env.CLIENT_ORIGIN}/billing.\n\nTarif : ${new Intl.NumberFormat("fr-FR").format(MONTHLY_PRICE)} FCFA par mois. Le renouvellement est manuel ; aucun prélèvement automatique ne sera effectué.\n\nL’équipe K-Manage`,
+        );
+        if (!sent) throw new Error("SMTP non configuré pour l’envoi des rappels d’abonnement.");
+        await Subscription.updateOne(
+          { _id: subscription._id, billingReminderClaimKey: reminderKey },
+          { $set: { lastBillingReminderKey: reminderKey }, $unset: { billingReminderClaimKey: 1, billingReminderClaimedAt: 1 } },
+        );
+      } catch (error) {
+        await Subscription.updateOne(
+          { _id: subscription._id, billingReminderClaimKey: reminderKey },
+          { $unset: { billingReminderClaimKey: 1, billingReminderClaimedAt: 1 } },
+        );
+        console.error("Échec de l’envoi d’un rappel d’abonnement K-Manage.", error);
+      }
+    }
+  }
+}
+
+export function startBillingReminderJob(env: Env) {
+  if (!env.SMTP_URL) {
+    console.info("Rappels d’abonnement désactivés : SMTP_URL n’est pas configuré.");
+    return;
+  }
+  const run = () => {
+    void sendBillingReminders(env).catch((error: unknown) => {
+      console.error("Échec du traitement des rappels d’abonnement.", error);
+    });
+  };
+  run();
+  const timer = setInterval(run, 6 * 60 * 60 * 1000);
+  timer.unref();
 }

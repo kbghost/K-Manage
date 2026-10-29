@@ -1,7 +1,7 @@
 # Design et expérience utilisateur
 
 ## Identité visuelle
-- **Police : Poppins** (Google Fonts), **auto-hébergée** via `@fontsource/poppins` (graisses 400/500/600/700, sous-ensembles latin + latin-ext pour le français) : aucune requête vers Google au chargement, fonctionne hors ligne. Taille de base **16 px** ; `text-sm` = 15 px et `text-xs` = 13 px (redéfinis dans `index.css`) pour une lecture confortable.
+- **Police : Poppins**, **auto-hébergée** via `@fontsource/poppins` (graisses 400/500/600/700, sous-ensembles latin + latin-ext pour le français) : aucune requête vers Google au chargement, fonctionne hors ligne. Taille de base **15 px** ; `text-sm` = 13,5 px et `text-xs` = 12 px (redéfinis dans `index.css`) pour une lecture confortable.
 - **Palette** : « encre » (menu latéral sombre `#0f1530`), indigo royal (`brand-*`), accent **ambre** `#f5a524`, neutres chauds (papier `#f7f6f2`). Tout passe par des variables CSS (`:root` / `.dark`) : changer la marque = modifier `apps/client/src/index.css`.
 - **Surfaces** : cartes arrondies (rayon 16–22 px), ombres douces, fond pointillé discret, carte « héros » en dégradé sur le tableau de bord, panneau de marque animé sur la page de connexion.
 

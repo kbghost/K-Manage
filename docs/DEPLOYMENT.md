@@ -18,7 +18,7 @@ Le déploiement est **facultatif** pour le développement local et n'a pas été
 | `USE_TRANSACTIONS` | `true` (obligatoire) |
 | `TRUST_PROXY` | `true` derrière un proxy |
 | `COOKIE_DOMAIN` | domaine parent si interface et API sont sur des sous-domaines |
-| `SMTP_URL`, `MAIL_FROM` | requis pour la réinitialisation de mot de passe |
+| `SMTP_URL`, `MAIL_FROM` | requis pour la réinitialisation de mot de passe ; `SMTP_URL` active aussi les rappels d'échéance |
 | `CLOUDINARY_CLOUD_NAME` | nom du cloud Cloudinary (requis pour les fichiers en production) |
 | `CLOUDINARY_API_KEY` | clé API Cloudinary |
 | `CLOUDINARY_API_SECRET` | secret API Cloudinary ; secret, ne jamais le committer |
@@ -39,7 +39,9 @@ En développement, sans variables Cloudinary, les fichiers continuent d'être é
 ### Paiements FedaPay et abonnements
 Configurez d'abord `FEDAPAY_MODE=sandbox` et la clé secrète sandbox. Dans le tableau de bord FedaPay, déclarez l'URL publique HTTPS `https://<api>/api/v1/billing/webhook` pour recevoir les notifications de transactions. L'API récupère ensuite le statut réel de la transaction auprès de FedaPay et ne prolonge l'abonnement qu'après confirmation du montant exact en XOF. Testez le parcours complet (redirection, notification et retour sur `/billing`) avec une boutique de test avant d'utiliser `FEDAPAY_MODE=live` et une clé secrète live.
 
-L'essai et les paiements sont associés à une boutique. Le renouvellement est manuel : K-Manage ne conserve pas de moyen de paiement et ne lance pas de prélèvement automatique. Les boutiques existantes sans abonnement reçoivent leur essai à leur première utilisation après l'activation de cette fonctionnalité.
+L'essai et les paiements sont associés à une boutique. Un paiement validé pendant l'essai réserve le mois payé à partir de la fin de l'essai ; un renouvellement anticipé prolonge la fin de la période déjà payée. Le renouvellement est manuel : K-Manage ne conserve pas de moyen de paiement et ne lance pas de prélèvement automatique. Les boutiques existantes sans abonnement reçoivent leur essai à leur première utilisation après l'activation de cette fonctionnalité.
+
+Si `SMTP_URL` est configuré, le serveur envoie au propriétaire un rappel environ 7 jours puis 1 jour avant la fin de l'essai ou de la période payée. Le traitement s'exécute toutes les 6 heures et empêche les envois répétés pour une même échéance. Sans SMTP, aucun rappel n'est envoyé ; l'interface l'indique au propriétaire.
 
 ## Étapes
 1. `npm ci` · `npm run typecheck` · `npm run lint` · `npm test` · `npm run build`.

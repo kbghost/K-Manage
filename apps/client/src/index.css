@@ -3,7 +3,7 @@
 
 /* ───────── Palette : Émeraude / Jade moderne & ardoise neutre (sans bleu) ───────── */
 :root {
-  --s50: #f8fafc; --s100: #f1f5f9; --s200: #e2e8f0; --s300: #cbd5e1; --s400: #94a3b8; --s500: #64748b; --s600: #475569; --s700: #334155; --s800: #1e293b; --s900: #0f172a;
+  --s50: #f8fafc; --s100: #f1f5f9; --s200: #e2e8f0; --s300: #cbd5e1; --s400: #64748b; --s500: #475569; --s600: #334155; --s700: #1e293b; --s800: #172033; --s900: #0f172a;
   --surface: #ffffff; --ink: #0f172a; --ink-2: #1e293b;
   --b50: #ecfdf5; --b100: #d1fae5; --b500: #10b981; --b600: #059669; --b700: #047857; --b800: #065f46;
   --e50: #ecfdf5; --e100: #d1fae5; --e700: #047857; --e800: #065f46;
@@ -13,7 +13,7 @@
   color-scheme: light;
 }
 .dark {
-  --s50: #0b0f19; --s100: #111827; --s200: #1f2937; --s300: #374151; --s400: #6b7280; --s500: #9ca3af; --s600: #d1d5db; --s700: #e5e7eb; --s800: #f3f4f6; --s900: #f9fafb;
+  --s50: #0b0f19; --s100: #111827; --s200: #1f2937; --s300: #374151; --s400: #9ca3af; --s500: #a1a1aa; --s600: #d1d5db; --s700: #e5e7eb; --s800: #f3f4f6; --s900: #f9fafb;
   --surface: #111827; --ink: #030712; --ink-2: #0b0f19;
   --b50: #064e3b; --b100: #065f46;
   --e50: #064e3b; --e100: #065f46; --e700: #6ee7b7; --e800: #a7f3d0;
@@ -25,9 +25,9 @@
 
 @theme {
   --font-sans: "Poppins", ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, Arial, sans-serif;
-  --text-xs: 0.8125rem; --text-xs--line-height: 1.25rem;
-  --text-sm: 0.9375rem; --text-sm--line-height: 1.45rem;
-  --text-base: 1rem; --text-base--line-height: 1.6rem;
+  --text-xs: 0.8rem; --text-xs--line-height: 1.2rem;
+  --text-sm: 0.9rem; --text-sm--line-height: 1.35rem;
+  --text-base: 0.95rem; --text-base--line-height: 1.5rem;
   --radius-lg: 0.75rem; --radius-xl: 1rem; --radius-2xl: 1.375rem;
   --shadow-sm: 0 1px 2px rgb(15 23 42 / 0.04), 0 4px 12px rgb(15 23 42 / 0.03);
   --shadow-lg: 0 10px 25px rgb(15 23 42 / 0.08), 0 2px 6px rgb(15 23 42 / 0.04);
@@ -41,10 +41,10 @@
   --color-ink: var(--ink); --color-ink-2: var(--ink-2); --color-accent: var(--accent);
 }
 
-html { font-size: 16px; }
+html { font-size: 15px; }
 html, body, #root { height: 100%; }
-body { @apply bg-slate-50 text-slate-800 antialiased; font-family: var(--font-sans); letter-spacing: -0.003em; font-feature-settings: "ss01", "kern"; }
-h1, h2, h3 { letter-spacing: -0.02em; }
+body { @apply bg-slate-50 text-slate-800 antialiased; font-family: var(--font-sans); letter-spacing: 0; font-feature-settings: "ss01", "kern"; }
+h1, h2, h3 { letter-spacing: -0.015em; }
 ::selection { background: color-mix(in oklab, var(--b600) 25%, transparent); }
 :focus-visible { outline: 2px solid var(--b600); outline-offset: 2px; }
 
@@ -52,8 +52,16 @@ h1, h2, h3 { letter-spacing: -0.02em; }
 .dark .bg-white { background-color: var(--surface); }
 .dark .text-brand-700, .dark .text-brand-800 { color: #6ee7b7; }
 .dark .text-red-600 { color: #fca5a5; }
+.dark .text-slate-950 { color: #f8fafc; }
+.dark .text-emerald-900 { color: #a7f3d0; }
+.dark .text-amber-900 { color: #fde68a; }
+.dark .text-red-900 { color: #fecaca; }
+.dark .bg-emerald-500.text-slate-950,
+.dark .bg-amber-500.text-slate-950 { color: #0f172a; }
+.dark .bg-amber-200 { background-color: #713f12; }
 .dark .border-dashed.border-black { border-color: #000; }
 .dark select, .dark input, .dark textarea { color-scheme: dark; }
+.dark ::selection { color: #ecfdf5; }
 .dark header {
   background-color: rgba(17, 24, 39, 0.96) !important;
   border-bottom-color: var(--s200) !important;

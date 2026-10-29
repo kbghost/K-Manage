@@ -27,4 +27,43 @@ describe("landing et abonnement", () => {
     expect(screen.getByLabelText("Téléphone pour le paiement")).toBeInTheDocument();
     expect(screen.getByRole("button", { name: /FedaPay/ })).toBeDisabled();
   });
+
+  it("vérifie la référence exacte du paiement renvoyé par FedaPay", async () => {
+    const calls = mockApi({
+      ...loggedIn,
+      "GET /billing/current": () => ({
+        body: {
+          data: {
+            status: "trial",
+            access: true,
+            trialEndsAt: "2026-11-29T00:00:00.000Z",
+            currentPeriodEndsAt: null,
+            monthlyPrice: 7000,
+            currency: "XOF",
+            businessName: "Boutique Test",
+            isOwner: true,
+            paymentConfigured: true,
+            remindersConfigured: false,
+            payments: [],
+          },
+        },
+      }),
+      "POST /billing/refresh": () => ({
+        body: {
+          data: {
+            status: "trial",
+            access: true,
+            paymentStatus: "pending",
+          },
+        },
+      }),
+    });
+
+    renderApp(<App />, "/billing?payment=KM-test-reference");
+
+    expect(await screen.findByText(/Le paiement n’est pas encore confirmé/)).toBeInTheDocument();
+    expect(calls.find((call) => call.method === "POST" && call.path === "/billing/refresh")?.body).toEqual({
+      reference: "KM-test-reference",
+    });
+  });
 });
