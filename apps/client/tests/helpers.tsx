@@ -37,6 +37,7 @@ export const loggedIn: Routes = {
   "GET /auth/me": () => ({ body: { data: { id: "u1", email: "a@b.bj", fullName: "Awa Test", csrfToken: "csrf" } } }),
   "GET /businesses": () => ({ body: { data: [{ id: "b1", name: "Boutique Test", role: "owner", currency: "XOF" }] } }),
   "GET /businesses/current": () => ({ body: { data: BUSINESS } }),
+  "GET /billing/current": () => ({ body: { data: { status: "trial", access: true, trialEndsAt: "2026-11-29T00:00:00.000Z", currentPeriodEndsAt: null, monthlyPrice: 7000, currency: "XOF", businessName: "Boutique Test", isOwner: true, paymentConfigured: false, payments: [] } } }),
   "GET /reports/notifications": () => ({ body: { data: [] } }),
 };
 

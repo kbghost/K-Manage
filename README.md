@@ -13,6 +13,11 @@ Police Poppins (auto-hébergée), icônes bicolores, animations fluides, mode so
 Monorepo npm : `packages/shared` (calculs financiers, permissions) · `apps/server` (Express + Mongoose + Zod) ·
 `apps/client` (React + Vite + Tailwind + TanStack Query). Détails : `docs/ARCHITECTURE.md`.
 
+## Abonnement et paiements
+Chaque boutique dispose d'un mois d'essai gratuit à sa création, puis l'accès aux fonctions métier nécessite un abonnement de **7 000 FCFA par mois**. Le renouvellement est déclenché manuellement par le propriétaire depuis **Abonnement** ; aucun débit récurrent ni enregistrement de carte n'est effectué par K-Manage. FedaPay présente les moyens de paiement disponibles (par exemple Mobile Money et carte bancaire) selon le compte et le pays.
+
+Pour activer les paiements, configurez `FEDAPAY_MODE=sandbox` et `FEDAPAY_SECRET_KEY` dans l'environnement de l'API, puis configurez le webhook FedaPay HTTPS vers `/api/v1/billing/webhook`. Le serveur vérifie la transaction auprès de l'API FedaPay avant d'enregistrer un paiement et de prolonger l'accès. Après validation en sandbox, passez `FEDAPAY_MODE` à `live` et utilisez uniquement la clé secrète live dans l'environnement de production. Tant que la clé n'est pas configurée, l'interface d'abonnement reste visible mais les paiements ne sont pas disponibles.
+
 ## Prérequis (Windows 10/11 + VS Code)
 1. **Node.js LTS ≥ 22.9** — https://nodejs.org (vérifier : `node -v`).
 2. **MongoDB Community Server** (installation directe, **sans Docker**) — https://www.mongodb.com/try/download/community  

@@ -6,6 +6,8 @@ import { ROLE_PERMISSIONS } from "@k-manage/shared";
 import { Business, Membership } from "./models.js";
 import { audit } from "../audit/service.js";
 import { serialize } from "../../utils/serialize.js";
+import { ensureSubscription } from "../billing/service.js";
+import { Subscription } from "../billing/models.js";
 
 const createSchema = z.object({
   name: z.string().trim().min(2).max(120),
@@ -41,7 +43,10 @@ export function businessesRouter() {
     const business = await Business.create({ ...input, ownerId: req.auth!.userId });
     try {
       await Membership.create({ businessId: business._id, userId: req.auth!.userId, role: "owner" });
+      await ensureSubscription(business._id, business.createdAt);
     } catch (e) {
+      await Subscription.deleteOne({ businessId: business._id });
+      await Membership.deleteOne({ businessId: business._id, userId: req.auth!.userId });
       await Business.deleteOne({ _id: business._id }); // pas de commerce orphelin
       throw e;
     }

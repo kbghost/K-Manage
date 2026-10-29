@@ -4,6 +4,7 @@ import { roleHasPermission, type Permission, type Role } from "@k-manage/shared"
 import { findActiveSession } from "../modules/auth/service.js";
 import { User } from "../modules/auth/models.js";
 import { Membership } from "../modules/businesses/models.js";
+import { subscriptionForBusiness, subscriptionView } from "../modules/billing/service.js";
 import { forbidden, unauthorized, AppError } from "../utils/errors.js";
 
 export const SESSION_COOKIE = "km_session";
@@ -60,6 +61,12 @@ export const requireTenant: RequestHandler = async (req, _res, next) => {
     // 404 plutot que 403 : ne revele pas l'existence d'un commerce etranger.
     if (!membership) throw new AppError(404, "NOT_FOUND", "Commerce introuvable");
     req.tenant = { businessId: membership.businessId, role: membership.role as Role };
+    if (!(req.baseUrl === "/api/v1/businesses" && req.path === "/current")) {
+      const subscription = await subscriptionForBusiness(membership.businessId);
+      if (!subscriptionView(subscription).access) {
+        throw new AppError(402, "SUBSCRIPTION_REQUIRED", "La période d'essai est terminée. Activez votre abonnement pour continuer.");
+      }
+    }
     next();
   } catch (e) {
     next(e);

@@ -18,6 +18,8 @@ const schema = z.object({
   DEV_EXPOSE_RESET_TOKEN: z.enum(["true", "false"]).default("false").transform((v) => v === "true"),
   ALLOW_DEMO_SEED_IN_PRODUCTION: z.enum(["true", "false"]).default("false").transform((v) => v === "true"),
   DEMO_SEED_PASSWORD: z.string().min(10).max(200).optional(),
+  FEDAPAY_SECRET_KEY: z.string().min(1).optional(),
+  FEDAPAY_MODE: z.enum(["sandbox", "live"]).default("sandbox"),
 }).superRefine((env, ctx) => {
   const cloudinaryValues = [env.CLOUDINARY_CLOUD_NAME, env.CLOUDINARY_API_KEY, env.CLOUDINARY_API_SECRET];
   if (cloudinaryValues.some(Boolean) && !cloudinaryValues.every(Boolean)) {

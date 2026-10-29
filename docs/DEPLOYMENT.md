@@ -22,6 +22,8 @@ Le déploiement est **facultatif** pour le développement local et n'a pas été
 | `CLOUDINARY_CLOUD_NAME` | nom du cloud Cloudinary (requis pour les fichiers en production) |
 | `CLOUDINARY_API_KEY` | clé API Cloudinary |
 | `CLOUDINARY_API_SECRET` | secret API Cloudinary ; secret, ne jamais le committer |
+| `FEDAPAY_MODE` | `sandbox` pour les essais, `live` après validation du compte marchand |
+| `FEDAPAY_SECRET_KEY` | clé secrète FedaPay correspondante ; à stocker uniquement dans l'environnement serveur |
 | `UPLOAD_DIR` | dossier local utilisé uniquement hors production quand Cloudinary n'est pas configuré |
 | `DEV_EXPOSE_RESET_TOKEN` | **ne pas définir** (l'API refuse de démarrer si actif) |
 Interface : `VITE_API_URL` (par défaut `/api/v1`, à définir au *build* si l'API est sur un autre sous-domaine, ex. `https://api.exemple.com/api/v1`).
@@ -33,6 +35,11 @@ Interface : `VITE_API_URL` (par défaut `/api/v1`, à définir au *build* si l'A
 4. Vérifiez en téléversant une image produit et un justificatif, puis ouvrez-les depuis l'application. Les nouveaux médias sont stockés dans Cloudinary ; l'API conserve les métadonnées dans MongoDB et vérifie toujours l'appartenance au commerce avant de servir un fichier.
 
 En développement, sans variables Cloudinary, les fichiers continuent d'être écrits dans `UPLOAD_DIR`. Les anciens médias déjà enregistrés sur le disque local ne sont pas migrés automatiquement ; importez-les à nouveau depuis l'application si le stockage éphémère les a supprimés.
+
+### Paiements FedaPay et abonnements
+Configurez d'abord `FEDAPAY_MODE=sandbox` et la clé secrète sandbox. Dans le tableau de bord FedaPay, déclarez l'URL publique HTTPS `https://<api>/api/v1/billing/webhook` pour recevoir les notifications de transactions. L'API récupère ensuite le statut réel de la transaction auprès de FedaPay et ne prolonge l'abonnement qu'après confirmation du montant exact en XOF. Testez le parcours complet (redirection, notification et retour sur `/billing`) avec une boutique de test avant d'utiliser `FEDAPAY_MODE=live` et une clé secrète live.
+
+L'essai et les paiements sont associés à une boutique. Le renouvellement est manuel : K-Manage ne conserve pas de moyen de paiement et ne lance pas de prélèvement automatique. Les boutiques existantes sans abonnement reçoivent leur essai à leur première utilisation après l'activation de cette fonctionnalité.
 
 ## Étapes
 1. `npm ci` · `npm run typecheck` · `npm run lint` · `npm test` · `npm run build`.

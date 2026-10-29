@@ -22,6 +22,7 @@ import { reportsRouter } from "./modules/reports/routes.js";
 import { salesRouter } from "./modules/sales/routes.js";
 import { stockRouter } from "./modules/stock/routes.js";
 import { uploadsRouter } from "./modules/uploads/routes.js";
+import { billingRouter } from "./modules/billing/routes.js";
 
 export function createApp(env: Env) {
   configureTransactions(env.USE_TRANSACTIONS);
@@ -39,6 +40,7 @@ export function createApp(env: Env) {
   app.use("/api/docs", swaggerUi.serve, swaggerUi.setup(undefined, { swaggerUrl: "/api/v1/openapi.json" }));
 
   app.use("/api/v1/auth", authRouter(env));
+  app.use("/api/v1/billing", billingRouter(env));
   app.use("/api/v1/businesses", businessesRouter());
   app.use("/api/v1/members", membersRouter());
   app.use("/api/v1/catalog", catalogRouter());

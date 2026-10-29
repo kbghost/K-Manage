@@ -65,6 +65,15 @@ function NavList({ collapsed, onNavigate, pillId }: { collapsed?: boolean; onNav
           </div>
         );
       })}
+      <div>
+        {!collapsed && <p className="mb-1 px-3 text-xs font-semibold uppercase tracking-widest text-slate-500">Compte</p>}
+        <NavLink to="/billing" onClick={onNavigate} title={collapsed ? "Abonnement" : undefined} className={({ isActive }) => cx("relative flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-medium transition-colors", collapsed && "justify-center", isActive ? "text-white" : "text-slate-400 hover:bg-white/5 hover:text-white")}>
+          {({ isActive }) => (<>
+            {isActive && <motion.span layoutId={pillId} className="absolute inset-0 rounded-xl bg-gradient-to-r from-brand-600/90 to-brand-700/60 shadow-md shadow-brand-700/30 ring-1 ring-white/10" transition={{ type: "spring", stiffness: 500, damping: 38 }} />}
+            <CreditCard className="relative size-[22px]" /><span className={cx("relative", collapsed && "sr-only")}>Abonnement</span>
+          </>)}
+        </NavLink>
+      </div>
       {!collapsed && business && <p className="mt-auto truncate px-3 pt-2 text-xs text-slate-500">{business.name}</p>}
     </nav>
   );

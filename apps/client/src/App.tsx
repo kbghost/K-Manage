@@ -1,11 +1,16 @@
 import { lazy, Suspense, type ReactNode } from "react";
 import { Navigate, Route, Routes, useLocation } from "react-router-dom";
+import { useQuery } from "@tanstack/react-query";
 import { useAuth } from "./lib/auth";
+import { api } from "./lib/api";
 import AppShell from "./layouts/AppShell";
 import { ForgotPasswordPage, LoginPage, RegisterPage, ResetPasswordPage } from "./pages/AuthPages";
 import Onboarding from "./pages/Onboarding";
 import { EmptyState, Spinner } from "./components/ui";
 import { ShieldAlert } from "./components/icons";
+import Landing from "./pages/Landing";
+
+const Billing = lazy(() => import("./pages/Billing"));
 
 const Dashboard = lazy(() => import("./pages/Dashboard"));
 const Pos = lazy(() => import("./pages/Pos"));
@@ -26,7 +31,7 @@ const Profile = lazy(() => import("./pages/Profile"));
 export function RequireAuth({ children }: { children: ReactNode }) {
   const { user, loading } = useAuth(); const loc = useLocation();
   if (loading) return <Spinner />;
-  if (!user) return <Navigate to="/login" replace state={{ from: loc.pathname }} />;
+  if (!user) return loc.pathname === "/" ? <Landing /> : <Navigate to="/login" replace state={{ from: loc.pathname }} />;
   return <>{children}</>;
 }
 function PublicOnly({ children }: { children: ReactNode }) {
@@ -45,10 +50,20 @@ function Home() {
   return <Navigate to={can("sales.create") ? "/pos" : can("products.read") ? "/products" : "/profile"} replace />;
 }
 function Gate() {
-  const { businesses, business, businessLoading } = useAuth();
+  const { user, businesses, business, businessLoading, activeId } = useAuth();
+  const location = useLocation();
+  const billing = useQuery({
+    queryKey: ["billing", activeId],
+    enabled: !!user && !!activeId && businesses.some((item) => item.id === activeId),
+    queryFn: async () => (await api<{ access: boolean }>("GET", "/billing/current")).data,
+  });
+  if (!user) return <Navigate to="/login" replace />;
   if (businessLoading) return <Spinner />;
   if (businesses.length === 0) return <div className="min-h-full p-4"><Onboarding /></div>;
   if (!business) return <Spinner />;
+  if (billing.isLoading) return <Spinner label="Vérification de l’abonnement..." />;
+  if (billing.isError || !billing.data) return <EmptyState title="Abonnement indisponible" text="Impossible de vérifier l’accès à cette boutique. Vérifiez votre connexion puis rechargez la page." action={<button className="rounded-lg bg-brand-700 px-4 py-2 text-sm font-medium text-white" onClick={() => void billing.refetch()}>Réessayer</button>} />;
+  if (!billing.data.access && location.pathname !== "/billing") return <Navigate to="/billing" replace />;
   return <AppShell />;
 }
 
@@ -61,8 +76,10 @@ export default function App() {
         <Route path="/register" element={<PublicOnly><RegisterPage /></PublicOnly>} />
         <Route path="/forgot-password" element={<ForgotPasswordPage />} />
         <Route path="/reset-password" element={<ResetPasswordPage />} />
+        <Route path="/welcome" element={<Landing />} />
         <Route element={<RequireAuth><Gate /></RequireAuth>}>
           <Route index element={<Home />} />
+          <Route path="billing" element={<Billing />} />
           <Route path="pos" element={P("sales.create", <Pos />)} />
           <Route path="products" element={P("products.read", <Products />)} />
           <Route path="stock" element={P("stock.read", <Stock />)} />

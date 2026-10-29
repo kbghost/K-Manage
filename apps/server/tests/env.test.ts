@@ -4,6 +4,7 @@ import { loadEnv } from "../src/config/env.js";
 describe("configuration", () => {
   it("applique les valeurs par defaut", () => {
     expect(loadEnv({} as NodeJS.ProcessEnv).PORT).toBe(4000);
+    expect(loadEnv({} as NodeJS.ProcessEnv).FEDAPAY_MODE).toBe("sandbox");
   });
   it("refuse l'exposition du jeton de reinitialisation en production", () => {
     expect(() => loadEnv({ NODE_ENV: "production", DEV_EXPOSE_RESET_TOKEN: "true" } as NodeJS.ProcessEnv)).toThrow();
