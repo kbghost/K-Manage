@@ -26,6 +26,7 @@ import {
   Users,
   Wallet,
   Warehouse,
+  Menu,
   X,
   Help,
 } from "../components/icons";
@@ -312,6 +313,7 @@ export default function Landing({ defaultSection }: { defaultSection?: "details"
   const [active, setActive] = useState(0);
   const [paused, setPaused] = useState(false);
   const [detailsOpen, setDetailsOpen] = useState(defaultSection === "details");
+  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [faqOpen, setFaqOpen] = useState<number | null>(0);
   const [dailySales, setDailySales] = useState(75000);
   const location = useLocation();
@@ -342,32 +344,34 @@ export default function Landing({ defaultSection }: { defaultSection?: "details"
   return (
     <div className="min-h-full overflow-hidden bg-white text-slate-800 antialiased selection:bg-emerald-100 selection:text-emerald-900">
       {/* ─── Barre de notification haute ─── */}
-      <div className="bg-gradient-to-r from-emerald-900 via-emerald-800 to-teal-900 px-4 py-2 text-center text-xs font-medium text-emerald-100 sm:px-6">
-        <span className="inline-flex items-center gap-2">
-          <span className="rounded-full bg-emerald-400/20 px-2 py-0.5 text-[10px] font-bold text-emerald-300 uppercase tracking-wide">
+      <div className="bg-gradient-to-r from-emerald-900 via-emerald-800 to-teal-900 px-3 py-1.5 text-center text-xs font-medium text-emerald-100 sm:px-6 sm:py-2">
+        <div className="mx-auto flex max-w-7xl items-center justify-center gap-2">
+          <span className="shrink-0 rounded-full bg-emerald-400/20 px-2 py-0.5 text-[10px] font-bold text-emerald-300 uppercase tracking-wide">
             Offre spéciale
           </span>
-          Profitez de <b>30 jours d’essai offert</b> sans engagement · Passerelle FedaPay certifiée
-          <Link to="/register" className="ml-2 underline font-semibold text-white hover:text-emerald-200">
-            Commencer maintenant →
+          <span className="truncate text-[11px] sm:text-xs">
+            <b>30 jours d’essai offert</b> <span className="hidden md:inline">sans engagement · Passerelle FedaPay certifiée</span>
+          </span>
+          <Link to="/register" className="shrink-0 text-[11px] sm:text-xs underline font-semibold text-white hover:text-emerald-200 whitespace-nowrap">
+            Commencer →
           </Link>
-        </span>
+        </div>
       </div>
 
       {/* ─── En-tête principal ─── */}
       <header className="sticky top-0 z-40 border-b border-slate-100 bg-white/95 backdrop-blur-md">
-        <div className="mx-auto flex max-w-7xl items-center justify-between px-5 py-4 sm:px-8">
-          <a href="#accueil" className="flex items-center gap-2.5" aria-label="K-Manage, accueil">
-            <span className="grid size-10 place-items-center rounded-2xl bg-gradient-to-br from-emerald-600 to-teal-800 text-white shadow-lg shadow-emerald-700/20">
-              <ClipboardList className="size-6" />
+        <div className="mx-auto flex max-w-7xl items-center justify-between px-4 py-3 sm:px-8 sm:py-4">
+          <a href="#accueil" className="flex shrink-0 items-center gap-2 sm:gap-2.5" aria-label="K-Manage, accueil">
+            <span className="grid size-9 sm:size-10 shrink-0 place-items-center rounded-2xl bg-gradient-to-br from-emerald-600 to-teal-800 text-white shadow-md shadow-emerald-700/20">
+              <ClipboardList className="size-5 sm:size-6" />
             </span>
-            <div>
-              <span className="text-xl font-bold tracking-tight text-slate-900">K-Manage</span>
-              <span className="hidden text-[10px] block -mt-1 font-medium text-slate-500 sm:block">Gestion & Caisse</span>
+            <div className="shrink-0">
+              <span className="text-lg sm:text-xl font-bold tracking-tight text-slate-900 whitespace-nowrap">K-Manage</span>
+              <span className="hidden text-[10px] -mt-1 font-medium text-slate-500 sm:block whitespace-nowrap">Gestion & Caisse</span>
             </div>
           </a>
 
-          <nav className="hidden items-center gap-6 md:flex">
+          <nav className="hidden items-center gap-6 lg:flex">
             <a href="#apercu" className="text-sm font-medium text-slate-600 transition hover:text-emerald-700">Démonstration</a>
             <a href="#fonctionnalites" className="text-sm font-medium text-slate-600 transition hover:text-emerald-700">Fonctionnalités</a>
             <a href="#details" onClick={(e) => { e.preventDefault(); setDetailsOpen(true); }} className="text-sm font-semibold text-emerald-700 transition hover:text-emerald-800">
@@ -378,73 +382,156 @@ export default function Landing({ defaultSection }: { defaultSection?: "details"
             <a href="#faq" className="text-sm font-medium text-slate-600 transition hover:text-emerald-700">FAQ</a>
           </nav>
 
-          <div className="flex items-center gap-3">
-            <Link to="/login" className="rounded-xl px-3.5 py-2 text-sm font-semibold text-slate-700 transition hover:bg-slate-100">
+          <div className="flex items-center gap-2 sm:gap-3">
+            <Link to="/login" className="rounded-xl px-2.5 py-1.5 sm:px-3.5 sm:py-2 text-xs sm:text-sm font-semibold text-slate-700 transition hover:bg-slate-100 whitespace-nowrap">
               Connexion
             </Link>
-            <Link to="/register">
-              <Button size="sm" className="rounded-xl bg-emerald-700 px-4 font-semibold text-white hover:bg-emerald-800 shadow-md shadow-emerald-700/20">
-                Essai gratuit 30 jours
+            <Link to="/register" className="shrink-0">
+              <Button size="sm" className="rounded-xl bg-emerald-700 px-3 py-1.5 sm:px-4 sm:py-2 text-xs sm:text-sm font-bold text-white hover:bg-emerald-800 shadow-md shadow-emerald-700/20 whitespace-nowrap">
+                <span className="sm:hidden">Essai gratuit</span>
+                <span className="hidden sm:inline">Essai gratuit 30 jours</span>
               </Button>
             </Link>
+            <button
+              type="button"
+              onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
+              className="grid size-9 place-items-center rounded-xl border border-slate-200 text-slate-700 transition hover:bg-slate-100 lg:hidden"
+              aria-label={mobileMenuOpen ? "Fermer le menu" : "Ouvrir le menu"}
+              aria-expanded={mobileMenuOpen}
+            >
+              {mobileMenuOpen ? <X className="size-5" /> : <Menu className="size-5" />}
+            </button>
           </div>
         </div>
+
+        {/* Menu mobile déroulant */}
+        <AnimatePresence>
+          {mobileMenuOpen && (
+            <motion.div
+              initial={{ opacity: 0, height: 0 }}
+              animate={{ opacity: 1, height: "auto" }}
+              exit={{ opacity: 0, height: 0 }}
+              className="border-b border-slate-200 bg-white px-5 py-4 lg:hidden shadow-xl"
+            >
+              <div className="flex flex-col space-y-3 text-sm font-semibold">
+                <a
+                  href="#apercu"
+                  onClick={() => setMobileMenuOpen(false)}
+                  className="rounded-lg px-3 py-2 text-slate-700 hover:bg-emerald-50 hover:text-emerald-800"
+                >
+                  Démonstration
+                </a>
+                <a
+                  href="#fonctionnalites"
+                  onClick={() => setMobileMenuOpen(false)}
+                  className="rounded-lg px-3 py-2 text-slate-700 hover:bg-emerald-50 hover:text-emerald-800"
+                >
+                  Fonctionnalités
+                </a>
+                <button
+                  type="button"
+                  onClick={() => { setMobileMenuOpen(false); setDetailsOpen(true); }}
+                  className="text-left rounded-lg px-3 py-2 font-bold text-emerald-700 hover:bg-emerald-50"
+                >
+                  Tous les détails de l’offre →
+                </button>
+                <a
+                  href="#tarif"
+                  onClick={() => setMobileMenuOpen(false)}
+                  className="rounded-lg px-3 py-2 text-slate-700 hover:bg-emerald-50 hover:text-emerald-800"
+                >
+                  Tarif unique (7000 FCFA/mois)
+                </a>
+                <a
+                  href="#fedapay"
+                  onClick={() => setMobileMenuOpen(false)}
+                  className="rounded-lg px-3 py-2 text-slate-700 hover:bg-emerald-50 hover:text-emerald-800"
+                >
+                  Paiement Mobile Money FedaPay
+                </a>
+                <a
+                  href="#faq"
+                  onClick={() => setMobileMenuOpen(false)}
+                  className="rounded-lg px-3 py-2 text-slate-700 hover:bg-emerald-50 hover:text-emerald-800"
+                >
+                  Questions fréquentes (FAQ)
+                </a>
+                <div className="pt-2 border-t border-slate-100 flex flex-col gap-2">
+                  <Link
+                    to="/register"
+                    onClick={() => setMobileMenuOpen(false)}
+                    className="w-full text-center rounded-xl bg-emerald-700 py-2.5 text-sm font-bold text-white shadow-md hover:bg-emerald-800"
+                  >
+                    Créer mon compte (1 mois offert)
+                  </Link>
+                  <Link
+                    to="/login"
+                    onClick={() => setMobileMenuOpen(false)}
+                    className="w-full text-center rounded-xl border border-slate-200 py-2 text-sm font-semibold text-slate-700 hover:bg-slate-50"
+                  >
+                    Accéder à mon espace
+                  </Link>
+                </div>
+              </div>
+            </motion.div>
+          )}
+        </AnimatePresence>
       </header>
 
       <main id="accueil">
         {/* ─── Hero Section avec Slides Interactifs ─── */}
-        <section className="relative isolate mx-auto max-w-7xl px-5 pb-20 pt-10 sm:px-8 sm:pb-28 sm:pt-16">
+        <section className="relative isolate mx-auto max-w-7xl px-4 pb-14 pt-6 sm:px-8 sm:pb-28 sm:pt-16">
           <div className="absolute -left-44 top-0 -z-10 size-[36rem] rounded-full bg-emerald-100/60 blur-3xl" />
           <div className="absolute right-0 top-1/3 -z-10 size-[30rem] rounded-full bg-teal-100/50 blur-3xl" />
 
-          <div className="grid items-center gap-12 lg:grid-cols-[1fr_1.1fr]">
+          <div className="grid items-center gap-10 lg:grid-cols-[1fr_1.1fr]">
             {/* Texte et appel à l'action */}
             <div className="max-w-xl">
-              <div className="inline-flex items-center gap-2 rounded-full border border-emerald-200 bg-emerald-50/80 px-3.5 py-1.5 text-xs font-semibold text-emerald-800 shadow-sm">
-                <Sparkle className="size-3.5 text-emerald-600" />
-                Logiciel de gestion commerciale n°1 en Afrique de l’Ouest
+              <div className="inline-flex items-center gap-2 rounded-full border border-emerald-200 bg-emerald-50/80 px-3.5 py-1.5 text-[11px] sm:text-xs font-semibold text-emerald-800 shadow-sm leading-tight">
+                <Sparkle className="size-3.5 shrink-0 text-emerald-600" />
+                <span>Logiciel de gestion commerciale n°1 en Afrique de l’Ouest</span>
               </div>
 
-              <h1 className="mt-6 text-4xl font-extrabold leading-[1.12] tracking-tight text-slate-950 sm:text-5xl lg:text-[3.6rem]">
+              <h1 className="mt-5 text-3xl font-extrabold leading-[1.15] tracking-tight text-slate-950 sm:text-5xl lg:text-[3.6rem]">
                 Tout votre commerce, au même endroit.
               </h1>
 
-              <p className="mt-5 text-base leading-7 text-slate-600 sm:text-lg">
+              <p className="mt-4 text-sm leading-6 text-slate-600 sm:text-lg sm:leading-7">
                 Ventes de caisse, suivi des stocks, carnet de dettes clients et calcul automatique de vos vrais bénéfices.
                 Prenez le contrôle total de votre boutique sur smartphone, tablette ou ordinateur.
               </p>
 
-              <div className="mt-8 flex flex-wrap items-center gap-3.5">
-                <Link to="/register">
-                  <Button size="lg" className="rounded-xl bg-emerald-700 px-6 font-bold text-white hover:bg-emerald-800 shadow-lg shadow-emerald-700/25">
+              <div className="mt-7 flex flex-col sm:flex-row items-stretch sm:items-center gap-3">
+                <Link to="/register" className="w-full sm:w-auto">
+                  <Button size="lg" className="w-full sm:w-auto justify-center rounded-xl bg-emerald-700 px-6 font-bold text-white hover:bg-emerald-800 shadow-lg shadow-emerald-700/25">
                     Essayer gratuitement 1 mois <ArrowRight className="size-5" />
                   </Button>
                 </Link>
                 <button
                   type="button"
                   onClick={() => setDetailsOpen(true)}
-                  className="rounded-xl border border-slate-200 bg-white px-5 py-3 text-sm font-semibold text-slate-700 shadow-sm transition hover:border-emerald-500 hover:text-emerald-700 hover:bg-slate-50"
+                  className="w-full sm:w-auto text-center justify-center rounded-xl border border-slate-200 bg-white px-5 py-3 text-sm font-semibold text-slate-700 shadow-sm transition hover:border-emerald-500 hover:text-emerald-700 hover:bg-slate-50"
                 >
                   Découvrir tous les détails
                 </button>
               </div>
 
               {/* Arguments clés de réassurance */}
-              <div className="mt-7 flex flex-wrap gap-x-5 gap-y-2 text-xs font-semibold text-slate-600">
+              <div className="mt-6 grid grid-cols-2 gap-2 text-xs font-semibold text-slate-600 sm:flex sm:flex-wrap sm:gap-x-5 sm:gap-y-2">
                 <span className="inline-flex items-center gap-1.5">
-                  <CheckCircle2 className="size-4 text-emerald-600" />
+                  <CheckCircle2 className="size-4 shrink-0 text-emerald-600" />
                   1 mois d’essai gratuit
                 </span>
                 <span className="inline-flex items-center gap-1.5">
-                  <CheckCircle2 className="size-4 text-emerald-600" />
+                  <CheckCircle2 className="size-4 shrink-0 text-emerald-600" />
                   Sans carte bancaire au départ
                 </span>
                 <span className="inline-flex items-center gap-1.5">
-                  <CheckCircle2 className="size-4 text-emerald-600" />
+                  <CheckCircle2 className="size-4 shrink-0 text-emerald-600" />
                   Puis 7000 FCFA / mois
                 </span>
                 <span className="inline-flex items-center gap-1.5">
-                  <CheckCircle2 className="size-4 text-emerald-600" />
+                  <CheckCircle2 className="size-4 shrink-0 text-emerald-600" />
                   Paiement FedaPay (Momo & Carte)
                 </span>
               </div>
@@ -493,20 +580,20 @@ export default function Landing({ defaultSection }: { defaultSection?: "details"
             >
               <div className="absolute -inset-4 rounded-[2.5rem] bg-gradient-to-tr from-emerald-500/20 via-teal-500/10 to-amber-500/15 blur-2xl" />
 
-              <div className="relative rounded-[2rem] border border-slate-200/80 bg-white p-5 shadow-2xl shadow-slate-900/10 sm:p-7">
+              <div className="relative rounded-[1.75rem] sm:rounded-[2rem] border border-slate-200/80 bg-white p-3.5 sm:p-7 shadow-2xl shadow-slate-900/10">
                 {/* Barre supérieure du mockup */}
-                <div className="flex items-center justify-between border-b border-slate-100 pb-4">
-                  <div className="flex items-center gap-2.5">
-                    <span className="grid size-9 place-items-center rounded-xl bg-emerald-600 text-white shadow-sm">
-                      <ClipboardList className="size-5" />
+                <div className="flex items-center justify-between border-b border-slate-100 pb-3 sm:pb-4">
+                  <div className="flex items-center gap-2 sm:gap-2.5">
+                    <span className="grid size-8 sm:size-9 place-items-center rounded-xl bg-emerald-600 text-white shadow-sm">
+                      <ClipboardList className="size-4 sm:size-5" />
                     </span>
                     <div>
-                      <span className="font-bold text-slate-900 text-sm">K-Manage Boutique</span>
-                      <p className="text-[10px] text-slate-400">Commerce connecté · Cotonou</p>
+                      <span className="font-bold text-slate-900 text-xs sm:text-sm">K-Manage Boutique</span>
+                      <p className="text-[9px] sm:text-[10px] text-slate-400">Commerce connecté · Cotonou</p>
                     </div>
                   </div>
                   <div className="flex items-center gap-2">
-                    <span className="rounded-full bg-emerald-50 px-2.5 py-1 text-xs font-semibold text-emerald-800">
+                    <span className="rounded-full bg-emerald-50 px-2 py-0.5 sm:px-2.5 sm:py-1 text-[10px] sm:text-xs font-semibold text-emerald-800">
                       {slide.tag}
                     </span>
                   </div>
@@ -520,30 +607,30 @@ export default function Landing({ defaultSection }: { defaultSection?: "details"
                     className="h-full w-full object-cover transition-transform duration-700 group-hover:scale-105"
                     loading="lazy"
                   />
-                  <div className="absolute inset-0 bg-gradient-to-t from-slate-950/85 via-slate-950/20 to-transparent flex items-end justify-between p-3.5">
+                  <div className="absolute inset-0 bg-gradient-to-t from-slate-950/85 via-slate-950/20 to-transparent flex items-end justify-between p-3 sm:p-3.5">
                     <div>
-                      <span className="text-[10px] font-bold uppercase tracking-wider text-emerald-300">Scénario réel</span>
-                      <p className="text-xs font-semibold text-white drop-shadow-sm">{slide.imageAlt}</p>
+                      <span className="text-[9px] sm:text-[10px] font-bold uppercase tracking-wider text-emerald-300">Scénario réel</span>
+                      <p className="text-[11px] sm:text-xs font-semibold text-white drop-shadow-sm">{slide.imageAlt}</p>
                     </div>
-                    <span className="rounded-lg bg-emerald-700/90 backdrop-blur-md px-2.5 py-1 text-[10px] font-bold text-white shadow-sm">
+                    <span className="rounded-lg bg-emerald-700/90 backdrop-blur-md px-2 py-0.5 sm:px-2.5 sm:py-1 text-[9px] sm:text-[10px] font-bold text-white shadow-sm">
                       {slide.badge}
                     </span>
                   </div>
                 </div>
 
                 {/* Métrique principale en vedette */}
-                <div className="mt-3.5 flex flex-wrap items-baseline justify-between gap-2 rounded-2xl bg-slate-50 p-4">
+                <div className="mt-3 flex flex-wrap items-baseline justify-between gap-2 rounded-2xl bg-slate-50 p-3 sm:p-4">
                   <div>
-                    <p className="text-xs font-medium text-slate-500">{slide.metric}</p>
-                    <p className="text-2xl font-black text-slate-900 sm:text-3xl tracking-tight">{slide.value}</p>
+                    <p className="text-[10px] sm:text-xs font-medium text-slate-500">{slide.metric}</p>
+                    <p className="text-xl sm:text-3xl font-black text-slate-900 tracking-tight">{slide.value}</p>
                   </div>
-                  <span className="text-xs font-semibold text-emerald-700 bg-emerald-50 px-2.5 py-1 rounded-lg">
+                  <span className="text-[10px] sm:text-xs font-semibold text-emerald-700 bg-emerald-50 px-2 py-0.5 sm:px-2.5 sm:py-1 rounded-lg">
                     {slide.secondary}
                   </span>
                 </div>
 
                 {/* Composant dynamique du slide */}
-                <div className="mt-4 min-h-[260px]">
+                <div className="mt-3.5 min-h-[240px] sm:min-h-[260px]">
                   <AnimatePresence mode="wait">
                     <motion.div
                       key={slide.id}
@@ -558,18 +645,18 @@ export default function Landing({ defaultSection }: { defaultSection?: "details"
                 </div>
 
                 {/* Sélecteur d'onglets de diapositive avec vignettes */}
-                <div className="mt-5 grid grid-cols-4 gap-2 border-t border-slate-100 pt-3">
+                <div className="mt-4 grid grid-cols-4 gap-1.5 sm:gap-2 border-t border-slate-100 pt-3">
                   {SLIDES.map((item, i) => (
                     <button
                       key={item.id}
                       onClick={() => setActive(i)}
-                      className={`group flex flex-col items-center gap-1 rounded-xl p-1.5 transition text-center ${
+                      className={`group flex flex-col items-center gap-1 rounded-xl p-1 sm:p-1.5 transition text-center ${
                         i === active
                           ? "bg-emerald-50 text-emerald-900 ring-2 ring-emerald-600 shadow-sm"
                           : "text-slate-500 hover:bg-slate-50"
                       }`}
                     >
-                      <div className="h-9 w-full overflow-hidden rounded-lg bg-slate-100">
+                      <div className="h-8 sm:h-9 w-full overflow-hidden rounded-lg bg-slate-100">
                         <img
                           src={item.image}
                           alt={item.badge}
@@ -577,7 +664,7 @@ export default function Landing({ defaultSection }: { defaultSection?: "details"
                           loading="lazy"
                         />
                       </div>
-                      <span className="text-[10px] font-bold truncate max-w-full">
+                      <span className="text-[9px] sm:text-[10px] font-bold truncate max-w-full">
                         {item.badge.split(" ")[0]}
                       </span>
                     </button>

@@ -89,15 +89,15 @@ export function CommandPalette({ open, onClose, onHelp }: { open: boolean; onClo
   return (
     <AnimatePresence>
       {open && (
-        <motion.div className="no-print fixed inset-0 z-[65] flex items-start justify-center bg-black/55 px-4 pt-[12vh] backdrop-blur-[3px]" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} transition={{ duration: 0.12 }} onMouseDown={(e) => e.target === e.currentTarget && onClose()}>
+        <motion.div className="no-print fixed inset-0 z-[65] flex items-start justify-center bg-black/55 px-3 pt-4 sm:px-4 sm:pt-[12vh] backdrop-blur-[3px]" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} transition={{ duration: 0.12 }} onMouseDown={(e) => e.target === e.currentTarget && onClose()}>
           <motion.div role="dialog" aria-modal="true" aria-label="Recherche rapide" initial={{ opacity: 0, y: -16, scale: 0.97 }} animate={{ opacity: 1, y: 0, scale: 1 }} exit={{ opacity: 0, y: -10, scale: 0.98 }} transition={{ type: "spring", stiffness: 480, damping: 34 }}
-            className="w-full max-w-xl overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-xl" onKeyDown={onKey}>
-            <div className="flex items-center gap-3 border-b border-slate-100 px-4">
-              <Search className="size-5 text-brand-700" />
-              <input ref={input} value={q} onChange={(e) => setQ(e.target.value)} role="combobox" aria-expanded aria-controls="cmd-list" aria-activedescendant={`cmd-${idx}`} aria-label="Rechercher une page, un produit, un client ou une vente" placeholder="Rechercher une page, un produit, un client, une vente…" className="w-full bg-transparent py-4 text-base text-slate-900 outline-none placeholder:text-slate-400" />
+            className="w-full max-w-xl overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-2xl" onKeyDown={onKey}>
+            <div className="flex items-center gap-2.5 sm:gap-3 border-b border-slate-100 px-3.5 sm:px-4">
+              <Search className="size-5 shrink-0 text-brand-700" />
+              <input ref={input} value={q} onChange={(e) => setQ(e.target.value)} role="combobox" aria-expanded aria-controls="cmd-list" aria-activedescendant={`cmd-${idx}`} aria-label="Rechercher une page, un produit, un client ou une vente" placeholder="Rechercher une page, un produit, un client, une vente…" className="w-full bg-transparent py-3 sm:py-4 text-sm sm:text-base text-slate-900 outline-none placeholder:text-slate-400" />
               <kbd className="hidden rounded-md border border-slate-200 px-1.5 py-0.5 text-xs text-slate-500 sm:block">Échap</kbd>
             </div>
-            <ul id="cmd-list" role="listbox" className="scroll-thin max-h-[52vh] overflow-y-auto p-2">
+            <ul id="cmd-list" role="listbox" className="scroll-thin max-h-[60vh] sm:max-h-[52vh] overflow-y-auto p-2">
               {items.length === 0 && <li className="px-4 py-8 text-center text-sm text-slate-500">{remote.isFetching ? "Recherche…" : "Aucun résultat. Essayez un autre mot."}</li>}
               {items.map((c, i) => {
                 const showHeader = c.group !== lastGroup;
